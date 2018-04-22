@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-from helpers import print_exception # là, il y a un truc qui merde / a voir plus tard / déplacer dans racine
-import RPi.GPIO as GPIO    # GPIO et PWM soft - utilisé uniquement avec Caterpillar         
-from RPIO import PWM       # GPIO et PWM via DMA - utilisé uniquement avec ServoMotor
+from __future__ import absolute_import, division
 import time
+import RPi.GPIO as GPIO    # GPIO et PWM soft - utilisé uniquement avec Caterpillar
+from RPIO import PWM       # GPIO et PWM via DMA - utilisé uniquement avec ServoMotor
+
+from plugins.helpers import print_exception # là, il y a un truc qui merde / a voir plus tard / déplacer dans racine
 #
 #############################################################################################
 #                                                                                           #
@@ -299,7 +301,6 @@ class ServoMotor(object):
         self.servo = PWM.Servo()            # utilisation de la librairie RPIO qui gère les DMA
         self.servo.__init__(0, 20000, 10)   # Initiallisation de la librairie sur DMA: 0 / f=50Hz / impultion mini: 10µs 
         self.servo.set_servo(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
-
 
     def __del__(self):
         self.angle_move = self.angle_init
