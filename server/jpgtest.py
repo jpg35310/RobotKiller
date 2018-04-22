@@ -7,7 +7,7 @@ import time              # bibliothèque pour gestion du temps
 from RkClassesHardware import Robotkiller
 
 
-speed_game = 0.03   # soit 30ms ce qiu est le temps de la boucle des commandes vers le robot
+speed_game = 0.03   # soit 30ms ce qui est le temps de la boucle des commandes vers le robot
 game_time = 5		# temps de jeu en secondes
 prog_main = True
 
@@ -19,11 +19,6 @@ os.system("clear")
 
 # Initialisation des class
 robotkiller = Robotkiller()
-
-# Un petit mouvement du bras pour monter qu'il est en vie !!!
-# robotkiller.bras1.angle(bras1_angle)
-# robotkiller.pince.angle(pince_angle)
-# time.sleep(2)
 
 
 # Le programme principal
