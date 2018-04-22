@@ -1,35 +1,29 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+from helpers import print_exception # là, il y a un truc qui merde / a voir plus tard / déplacer dans racine
 import os                # Fonction du système d'exploitation
 import time              # bibliothèque pour gestion du temps
-from RkClassesHardware import io_init
-from RkClassesHardware import Caterpillars
-from RkClassesHardware import acceleration
-from RkClassesHardware import ServoMotors
-from RkClassesHardware import chg_angle
+from RkClassesHardware import Robotkiller
 
 
-game_time = 10	# temps de jeu en secondes
+speed_game = 0.03   # soit 30ms ce qiu est le temps de la boucle des commandes vers le robot
+game_time = 5		# temps de jeu en secondes
 prog_main = True
 
-pince_angle = 90
-bras1_angle = 50
-bras2_angle = 70
+
+slow_distance = 15	# Si obstacle à moins de 15cm, les moteurs passent en vitesse réduite 
+mesure_distance = slow_distance
 
 os.system("clear") 
 
 # Initialisation des class
-
-io_init()
-caterpillar = Caterpillars()
-servomotor = ServoMotors()
+robotkiller = Robotkiller()
 
 # Un petit mouvement du bras pour monter qu'il est en vie !!!
-servomotor.bras1.angle(bras1_angle)
-servomotor.bras2.angle(bras2_angle)
-servomotor.pince.angle(pince_angle)
-time.sleep(2)
+# robotkiller.bras1.angle(bras1_angle)
+# robotkiller.pince.angle(pince_angle)
+# time.sleep(2)
 
 
 # Le programme principal
@@ -40,82 +34,105 @@ while prog_main :
 	print("|                                               |")
 	print("+-----------------------------------------------+\n")
 	print("Choix du programme de test ?")
-	choix = input("1. Test Chenille\n2. Test bras\n3. none\n4. none\n5. Sortie programme\nChoix: ")
+	choix = input("0. Chenille avance\n1. Chenille recule\n2. Chenille ralentir en avancant\n\
+3. Chenille ralentir en reculant\n4. Chenille stop\n\
+5. Bras monté\n6. Bras descendre\n\
+7. Ouvrir pince\n8. Fermer pince\n\
+9. Test de la mort qui tue !\n\
+10. Sortie programme\nChoix: ")
 
-	if choix == 1 :
-		print("Test Chenille ")
+	if choix == 0 :
+		print("Chenille avance")
+		print("tempo 5 secondes ")
 		prog_game = True
 		count_time = 0
-
-		speed_caterpillar_right = 1			# Vitesse de la chenille de -MAXSPEED à 0 à +MAXSPEED / faut mettre 1 ou -1 pour demarrer
-		auto_caterpillar_right = 1			#  1 = Accélération jusqu'a MAXSPEED / 0 = Relentissement jusqu'a 0 
-
-		speed_caterpillar_left = 1
-		auto_caterpillar_left = 1
-
 		while prog_game :
-			count_time = count_time + 0.02
+			count_time = count_time + speed_game
 			if count_time > game_time :
 				prog_game = False
-			time.sleep(0.02) # Pour gérer la vitesse de la boucle while      
-			print(speed_caterpillar_right)
-			print(speed_caterpillar_left)
-			speed_caterpillar_right=acceleration(speed_caterpillar_right, auto_caterpillar_right)
-			caterpillar.right.setspeed(speed_caterpillar_right)
-			speed_caterpillar_left=acceleration(speed_caterpillar_left, auto_caterpillar_left)
-			caterpillar.left.setspeed(speed_caterpillar_left)
-		# Arret des chenilles
-		caterpillar.right.setspeed(0)
-		caterpillar.left.setspeed(0)	
+			time.sleep(speed_game) # Pour gérer la vitesse de la boucle while      
+			#robotkiller.right.running(max_speed,acceleration,forward,stopping)
+			robotkiller.right.running(100,True,True,False)
+			robotkiller.left.running(100,True,True,False)
+			mesure_distance = robotkiller.eyes.measured(slow_distance)
+			print("Distance Prog: {0:5.1f}".format(mesure_distance))
+
+			
+	if choix == 1 :
+		print("Chenille recule")
+		print("tempo 5 secondes ")
+		prog_game = True
+		count_time = 0
+		while prog_game :
+			count_time = count_time + speed_game
+			if count_time > game_time :
+				prog_game = False
+			time.sleep(speed_game) # Pour gérer la vitesse de la boucle while      
+			#robotkiller.right.running(max_speed,acceleration,forward,stopping)
+			robotkiller.right.running(100,True,False,False)
+			robotkiller.left.running(100,True,False,False)
 
 	if choix == 2 :
-		print("Test du bras")
-	# 	pince_angle = 1 
-	# #	bras1_angle = 10 
-	# #	bras2_angle = 90
-	# 	servomotor.bras1.angle(bras1_angle)
-	# 	servomotor.bras2.angle(bras2_angle)
-	# 	servomotor.pince.angle(pince_angle)
-	# 	while var < 15: # Repeter 10 fois
-	# 		auto_bras1 = True
-	# 		bras1_way = True
-	# 		auto_bras2 = True
-	# 		bras2_way = False
-	# 		bras1_angle = chg_angle(bras1_angle, 1, bras1_angle_min, bras1_angle_max, auto_bras1, bras1_way)
-	# 		bras2_angle = chg_angle(bras2_angle, 1, bras2_angle_min, bras2_angle_max, auto_bras2, bras2_way)
-	# 		servomotor.bras1.angle(bras1_angle)
-	# 		servomotor.bras2.angle(bras2_angle)
-	# 		time.sleep(0.25)
-	# 		var = var + 1
-	# 		print(var)
-	# 	auto_bras1 = False
-	# 	auto_bras2 = False
-	# 	time.sleep(2)
+		print("Chenille ralentir en avancant")
+		print("tempo 5 secondes ")
+		prog_game = True
+		count_time = 0
+		while prog_game :
+			count_time = count_time + speed_game
+			if count_time > game_time :
+				prog_game = False
+			time.sleep(speed_game) # Pour gérer la vitesse de la boucle while      
+			#robotkiller.right.running(max_speed,acceleration,forward,stopping)
+			robotkiller.right.running(100,False,True,False)
+			robotkiller.left.running(100,False,True,False)
 
 	if choix == 3 :
-		print("Test N°3 ")
+		print("Chenille ralentir en reculant")
+		print("tempo 5 secondes ")
+		prog_game = True
+		count_time = 0
+		while prog_game :
+			count_time = count_time + speed_game
+			if count_time > game_time :
+				prog_game = False
+			time.sleep(speed_game) # Pour gérer la vitesse de la boucle while      
+			#robotkiller.right.running(max_speed,acceleration,forward,stopping)
+			robotkiller.right.running(100,False,False,False)
+			robotkiller.left.running(100,False,False,False)
 
 	if choix == 4 :
-		print("Test du moteur PWM ")
+		print("Chenille stop")
+		#robotkiller.right.running(max_speed,acceleration,forward,stopping)
+		robotkiller.right.running(100,True,True,True)
+		robotkiller.left.running(100,False,False,True)
+
+	if choix == 5 :
+		print("Bras monté")
+		#robotkiller.arm.work(up,down)
+		robotkiller.arm.work(True,False)
+
+	if choix == 6 :
+		print("Bras descendre")
+		#robotkiller.arm.work(up,down)
+		robotkiller.arm.work(False,True)
+
+	if choix == 7 :
+		print("Ouvrir pince")
+		#robotkiller.pince.work(open,close)
+		robotkiller.pince.work(True,False)
+
+	if choix == 8 :
+		print("Fermer pince")
+		#robotkiller.pince.work(open,close)
+		robotkiller.pince.work(False,True)
+
+	if choix == 9 :
+		print("Test de la mort qui tue !")
+
 
 	# Sortie propre du programme
-	if choix == 5 :
+	if choix == 10 :
 		print("Fin du programme")
 		prog_main = False
 
-pince_angle = 1 
-bras1_angle = 15 # à 10 ca force et l'intensité augmente à 500 mA au lieu de 200mA 
-bras2_angle = 90
-speed_caterpillar_left = 0
-speed_caterpillar_right = 0      
-caterpillar.left.setspeed(speed_caterpillar_left)
-caterpillar.right.setspeed(speed_caterpillar_right)
-servomotor.bras1.angle(bras1_angle)
-servomotor.bras2.angle(bras2_angle)
-servomotor.pince.angle(pince_angle)
-time.sleep(1)
-servomotor.bras1.stop()
-servomotor.bras2.stop()
-servomotor.pince.stop()
-GPIO.cleanup()
-PWM.cleanup()
+
