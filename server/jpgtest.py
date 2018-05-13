@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-#from helpers import print_exception # là, il y a un truc qui merde / a voir plus tard / déplacer dans racine
+from __future__ import absolute_import, division
 import os                # Fonction du système d'exploitation
 import time              # bibliothèque pour gestion du temps
 from RkClassesHardware import Robotkiller
+from plugins.helpers import print_exception
 
 
 speed_game = 0.1   # soit 30ms ce qui est le temps de la boucle des commandes vers le robot
@@ -53,7 +54,7 @@ while prog_main :
 			robotkiller.right.running(200,True,True,False)
 			robotkiller.left.running(200,True,True,False)
 			mesure_distance = robotkiller.eyes.measured(slow_distance)
-			print("Distance Prog: {0:5.1f}".format(mesure_distance))
+			print_exception("Distance Prog: {0:5.1f}".format(mesure_distance))
 
 
 	if choix == 1 :
