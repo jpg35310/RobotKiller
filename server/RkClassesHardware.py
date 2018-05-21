@@ -3,11 +3,9 @@
 #
 from __future__ import absolute_import, division
 import time
-import RPi.GPIO as GPIO    # GPIO et PWM soft - utilisé uniquement avec Caterpillar
-from RPIO import PWM       # GPIO et PWM via DMA - utilisé uniquement avec ServoMotor
+import pigpio
+from plugins.helpers import print_exception 
 
-from plugins.helpers import print_exception # là, il y a un truc qui merde / a voir plus tard / déplacer dans racine
-#
 #############################################################################################
 #                                                                                           #
 #                                ROBOTKILLER THE ULTIMATE KILLER                            #
@@ -17,9 +15,8 @@ from plugins.helpers import print_exception # là, il y a un truc qui merde / a 
 #############################################################################################
 #
 #############################################################################################
-#                                Initialisation des variables                               #
+#               Explications pour gerer les bras/pince avec une valeur angulaire            #
 #############################################################################################
-# Explications pour gerer les bras/pince avec une valeur angulaire
 # Micro Servo Tower Pro SG90 (course de -90° à +90° soit 180°)
 # Cablage: orange => PWM / Rouge => +5VDC / Marron => GND 
 # Fréquence = 50Hz
@@ -52,57 +49,71 @@ from plugins.helpers import print_exception # là, il y a un truc qui merde / a 
 # 0° = 700 // 120° = 2290
 # PULSE = (((2250-750)/120)*ANGLE)+750
 #
-#
-# En majuscule les variables globales
-a_pwm = 32                      # Chenille - Commande PWM moteur A -        BCM: 12 / pin: 32
-b_pwm = 33                      # Chenille - Commande PWM moteur B -        BCM: 13 / pin: 33
-a_dir = 12                      # Chenille - Sens de rotation du moteur A - BCM: 18 / pin: 12
-b_dir = 13                      # Chenille - Sens de rotation du moteur B - BCM: 27 / pin: 13
-MAX_SPEED = 100                 # max speed est la valeur maxi de cycle du PWM supporté par le hardware
-COLLISION_SPEED = 20            # min speed est la valeur maxi de cycle en cas de risque de collision
+#############################################################################################
+#                                Initialisation des constantes                              #
+#############################################################################################
+a_pwm = 12                      # Chenille - Commande PWM moteur A -        BCM: 12 / pin: 32
+b_pwm = 13                      # Chenille - Commande PWM moteur B -        BCM: 13 / pin: 33
 
-pin_trigger1 = 11               # Capteur de distance ultrason - trigger 
-pin_echo1 = 7                   # Capteur de distance ultrason - echo
-COLLISION = False               # Risque de collision qui doit obliger le rebot à passer en vitesse réduite 
+a_dir = 18                      # Chenille - Sens de rotation du moteur A - BCM: 18 / pin: 12
+b_dir = 27                      # Chenille - Sens de rotation du moteur B - BCM: 27 / pin: 13
+
+pin_trigger = 17                # Capteur de distance ultrason - trigger -   BCM:17 /pin: 11 
+pin_echo = 4                    # Capteur de distance ultrason - echo -      BCM:04 /pin: 07
+COLLISION = False               # Risque de collision qui oblige à passer en vitesse réduite 
 temperature = 26                # Température ambiante en °C  
 speedSound =33100 + (0.6*temperature)   # calcul de la vitesse du son en cm/s
 
-ledavg = 35                     # LED - LED Avant Gauche (Verte) -          BCM: xx / pin: 35
-ledavd = 36                     # LED - LED Avant Droite (Verte) -          BCM: xx / pin: 36
-ledarg = 37                     # LED - LED Arrière Gauche (Rouge) -        BCM: xx / pin: 37
-ledard = 38                     # LED - LED Arrière Droite (Rouge) -        BCM: xx / pin: 38
+ledavg = 19                     # LED - LED Avant Gauche (Verte) -          BCM: 19 / pin: 35
+ledavd = 16                     # LED - LED Avant Droite (Verte) -          BCM: 16 / pin: 36
+ledarg = 26                     # LED - LED Arrière Gauche (Rouge) -        BCM: 26 / pin: 37
+ledard = 20                     # LED - LED Arrière Droite (Rouge) -        BCM: 20 / pin: 38
 
 pin_pince = 25                  # Bras - pince -                            BCM: 25 / pin: 22
 pin_bras1 = 24                  # Bras - bras principale -                  BCM: 24 / pin: 18
 pin_bras2 = 23                  # Bras - bras de la pince -                 BCM: 23 / pin: 16
-pin_bp = 40                     # BP - Bouton poussoir de lancement -       BCM: XX / pin: 40
+pin_bp = 21                     # BP - Bouton poussoir de lancement -       BCM: 21 / pin: 40
 
 pince_servo_cal_m = (2300-600)/180  # valeur M propre à chaque servo
 pince_servo_cal_x1 = 600            # valeur x1 propre à chaque servo
 pince_angle_min = 20                # Pince ouverte
-pince_angle = 20                    # Position au démarrage
 pince_angle_max = 100               # Pince fermé
-pince_angle_inc = 2
 
 bras1_servo_cal_m = (2250-750)/140  # valeur M propre à chaque servo
 bras1_servo_cal_x1 = 750            # valeur x1 propre à chaque servo
 bras1_angle_min = 15                # min:10° = bras relevé au max
-bras1_angle = 50                    # Position au démarrage
 bras1_angle_max = 110               # max: 125° = bras au sol
-bras1_angle_inc = 1
 
 bras2_servo_cal_m = (2250-750)/140  # valeur M propre à chaque servo
 bras2_servo_cal_x1 = 750            # valeur x1 propre à chaque servo
 bras2_angle_min = 20                # min:x° = 
-bras2_angle = 70                    # Position au démarrage
 bras2_angle_max = 91                # max: x° =
-bras2_angle_inc = 1 
-
-io_initialized = False          # Variable pour intialiser qu'une seule fois les GPIO
-
 
 #############################################################################################
-#                     L'objet principale qui doit être appelé  de l'extérieur               #
+#                                Initialisation des variables                               #
+#############################################################################################
+# En majuscule les variables globales
+MAX_SPEED = 200                 # max speed est la valeur maxi de cycle du PWM supporté par le hardware
+                                # 200 pour les moteurs de base
+                                # 125 pour les moteurs de compétition !!!
+
+COLLISION_SPEED = 20            # min speed est la valeur maxi de cycle en cas de risque de collision
+max_speed_inc = 2
+
+pince_angle = 20                # Position au démarrage
+pince_angle_inc = 2
+
+bras1_angle = 50                # Position au démarrage
+bras1_angle_inc = 1
+
+bras2_angle = 70                # Position au démarrage
+bras2_angle_inc = 1 
+
+pigpio_host = "localhost"
+pigpio_tcp_port =8888
+
+#############################################################################################
+#              L'objet principale qui doit être appelé du programme principal               #
 #                                                                                           #
 #   Fonctionnement:                                                                         #
 #   from RkClassesHardware import robotkiller                                               #
@@ -115,10 +126,10 @@ io_initialized = False          # Variable pour intialiser qu'une seule fois les
 #   robotkiller.right.running(max_speed,acceleration,forward,stopping)                      #
 #   robotkiller.left.running(max_speed,acceleration,forward,stopping)                       #
 #       max_speed = vitesse maxi du jeu de 0=arret à 100=maxi / test réalisé à 80 et 100    # 
-#       acceleration = True => touche clavier enfoncé et le moteur accélé jusqu'a max_speed # 
-#       acceleration = False => touche clavier relaché et le moteur ralenti puis s'arrête   # 
-#       forward = True on avance / Flase on recule                                          #
-#       stopping =  Flase = ok / True = Arrêt brusque                                       #
+#       acceleration: "True" = touche clavier enfoncé, le moteur accélé jusqu'a max_speed   # 
+#                     "False" = touche clavier relaché, le moteur ralenti puis s'arrête     # 
+#       forward: "True" = avancer / "Flase" = marche arrière                                #
+#       stopping: "True" = Arrêt                                                            #
 #                                                                                           #
 #   Fonctionnement du capteur de distance:                                                  #
 #   mesure_distance = robotkiller.eyes.measured(slow_distance)                              #
@@ -144,16 +155,12 @@ io_initialized = False          # Variable pour intialiser qu'une seule fois les
 class Robotkiller(object):
 
     def __init__(self):
-        io_init()
         self.left = Caterpillar(a_pwm, a_dir, ledavg, ledarg)
         self.right = Caterpillar(b_pwm, b_dir, ledavd, ledard)
         self.pince = ServoMotor(pin_pince,pince_servo_cal_m,pince_servo_cal_x1,pince_angle_inc,pince_angle_min,pince_angle_max,pince_angle)
         self.arm = Arm()
-        self.eyes = Distance(pin_echo1, pin_trigger1)
-
-    # def __del__(self):
-    #     GPIO.cleanup()
-    #     PWM.cleanup()
+        self.eyes = Distance(pin_echo, pin_trigger)
+        self.button = PushButton(pin_bp)
 
     def runnings(self,left_max_speed,left_acceleration,left_forward,left_stopping,right_max_speed,right_acceleration,right_forward,right_stopping):
         self.left.running(left_max_speed,left_acceleration,left_forward,left_stopping)
@@ -166,30 +173,8 @@ class Robotkiller(object):
         self.pince.work(pince_open,pince_close)
         self.arm.work(arm_up,arm_down)
 
-
-#############################################################################################
-#                       Fonction initialisation des GPIO pour RPi.GPIO                      #
-#############################################################################################
-
-def io_init():                                                  # Initiallisation nécessaire pour RPi.GPIO
-    global io_initialized                                       # Définition d'une variable globale
-    if io_initialized:                                          # Si déja initialisé on sort sans rien faire
-        return
-    #GPIO.setmode(GPIO.BCM)                                     # mode de numérotation des pins
-    GPIO.setmode(GPIO.BOARD)                                    # mode de numérotation de la carte
-    GPIO.setwarnings(False)                                     # Suppression des warnings
-    GPIO.setup(a_pwm, GPIO.OUT)                                 # Caterpillar moteur A - PWM 
-    GPIO.setup(b_pwm, GPIO.OUT)                                 # Caterpillar moteur B - PWM 
-    GPIO.setup(a_dir, GPIO.OUT)                                 # Caterpillar moteur A - DIR 
-    GPIO.setup(b_dir, GPIO.OUT)                                 # Caterpillar moteur B - DIR 
-    GPIO.setup(ledavg, GPIO.OUT, initial = GPIO.LOW)            # LED avant gauche
-    GPIO.setup(ledavd, GPIO.OUT, initial = GPIO.LOW)            # LED avant droite
-    GPIO.setup(ledarg, GPIO.OUT, initial = GPIO.LOW)            # LED arrière gauche
-    GPIO.setup(ledard, GPIO.OUT, initial = GPIO.LOW)            # LED arrière gauche
-    GPIO.setup(pin_bp, GPIO.IN, pull_up_down = GPIO.PUD_UP)     # Bouton pousoir
-    GPIO.setup(pin_trigger1,GPIO.OUT)                           # Capteur ulrasonic - Trigger
-    GPIO.setup(pin_echo1,GPIO.IN)                               # Capteur ulrasonic - Echo
-    io_initialized = True
+    def pushs(self,status):
+        self.button.push()
 
 
 #############################################################################################
@@ -202,32 +187,41 @@ class Caterpillar(object):
         self.dir_pin = dir_pin
         self.leda_pin = leda_pin
         self.ledr_pin = ledr_pin
-        self.last_direction = True              # Dernier sens de rotation du moteur / False = Arrière / True = Avancer
-        self.acceleration_inc = 1               # Incrément de l'accélération (par défaut 3)
-        self.speed = 0                          # vitesse courante de la chenille
-        self.motor = GPIO.PWM(pwm_pin, 2500)    # Définition de la fréquence en ms 
-        self.motor.start(0)                     # Démarrage du moteur à l'arret
+        self.last_direction = True                              # Dernier sens de rotation du moteur / False = Arrière / True = Avancer
+        self.acceleration_inc = max_speed_inc                   # Incrément de l'accélération (par défaut 3)
+        self.speed = 0                                          # vitesse courante de la chenille
+        self.motor = pigpio.pi(pigpio_host, pigpio_tcp_port)    # Création d'une instance PIGPIO
+        if not self.motor.connected:
+            print("Erreur initialisation PiGPIO")
+            exit()    
+        self.motor.set_mode(self.dir_pin, pigpio.OUTPUT)
+        self.motor.set_mode(self.leda_pin, pigpio.OUTPUT)
+        self.motor.set_mode(self.ledr_pin, pigpio.OUTPUT)
+        self.motor.write(self.dir_pin,0)
+        self.motor.write(self.leda_pin,0)
+        self.motor.write(self.ledr_pin,0)
+#        self.motor.set_PWM_frequency(self.pwm_pin,8000)    # PWM Soft - Définition de la fréquence en ms soit 8KHz=8000 ou lieu de 20KHz=20000
+        self.motor.hardware_PWM(self.pwm_pin, 4000, 0)      # PWM Hard - Au final 4KHz avec un dutycycle de 0%, donc moteur à l'arret
+        self.motor.set_PWM_range(self.pwm_pin, 200)         # donc 50 = 1/4 à 1 pour un cycle, 100=1/2,   150=3/4, 200/on
 
- 
     def running(self,max_speed,acceleration,forward,stopping):
         # Arret d'urgence
         if (stopping == True) or ((acceleration == True) and (forward != self.last_direction)) : 
             self.speed = 0
-            GPIO.output(self.leda_pin,GPIO.LOW)
-            GPIO.output(self.ledr_pin,GPIO.LOW)
+            self.motor.write(self.leda_pin,0)
+            self.motor.write(self.ledr_pin,0)
 
         # Marche avant
         elif (forward == True) :
-            GPIO.output(self.leda_pin,GPIO.HIGH)
-            GPIO.output(self.ledr_pin,GPIO.LOW)
-            GPIO.output(self.dir_pin,GPIO.LOW)
+            self.motor.write(self.leda_pin,1)
+            self.motor.write(self.ledr_pin,0)
+            self.motor.write(self.dir_pin,0)
 
         # Marche arrière
         elif (forward == False) :
-            GPIO.output(self.leda_pin,GPIO.LOW)
-            GPIO.output(self.ledr_pin,GPIO.HIGH)
-            GPIO.output(self.dir_pin,GPIO.HIGH)
-
+            self.motor.write(self.leda_pin,0)
+            self.motor.write(self.ledr_pin,1)
+            self.motor.write(self.dir_pin,1)
 
         # Acceleration et sécurité      
         if (COLLISION == True) and (acceleration == True) :
@@ -238,44 +232,62 @@ class Caterpillar(object):
 
         elif (acceleration == True) and  (stopping == False):  
             self.speed = self.speed + self.acceleration_inc
-            if self.speed > max_speed :                      #Vitesse maxi du jeu
+            if self.speed > max_speed :                         #Vitesse maxi du jeu
                 self.speed = max_speed
-            elif self.speed > MAX_SPEED :                    #Vitesse maxi supporté par le hardware
+            elif self.speed > MAX_SPEED :                       #Vitesse maxi supporté par le hardware
                 self.speed = MAX_SPEED
 
         # Ralentir et s'arrêter      
         else :
             self.speed = self.speed - self.acceleration_inc
-            if self.speed < 0 :                             #Si on est arrêté, on y reste et pas valeur négative
+            if self.speed <= 0 :                                #Si on est arrêté, on y reste et pas valeur négative
                 self.speed = 0
+                self.motor.write(self.leda_pin,0)
+                self.motor.write(self.ledr_pin,0)
  
-        
-        self.motor.ChangeDutyCycle(self.speed)              # Envois de la nouvelle vitesse au moteur
+        self.motor.set_PWM_dutycycle(self.pwm_pin, self.speed)  # Envois de la nouvelle vitesse au moteur
 #        print("Speed Cycle: {0:5.1f}".format(self.speed))
-        self.last_direction = forward                       # Mémorisation du sens de rotation
-
+        self.last_direction = forward                           # Mémorisation du sens de rotation
 
 class Distance(object):
     def __init__(self, pin_echo, pin_trigger):
         self.echo_pin = pin_echo
         self.trigger_pin = pin_trigger
         self.mesure_distance = 0
-        GPIO.output(self.trigger_pin, False)                # On passe le trigger à Low
-        time.sleep(0.5)                                     # On attend que le module à ultrason s'inititalise la première fois (sinon ca bug)
+        self.mesure = pigpio.pi(pigpio_host, pigpio_tcp_port)   # utilisation de la librairie PiGPIO qui gère les DMA
+        if not self.mesure.connected:
+             print("Erreur initialisation PiGPIO")
+             exit()    
+        self.mesure.set_mode(self.trigger_pin, pigpio.OUTPUT)
+        self.mesure.set_mode(self.echo_pin, pigpio.INPUT)
+        self.mesure.write(self.trigger_pin, 0)                  # On passe le trigger à Low
+        time.sleep(0.5)                                         # On attend que le module à ultrason s'inititalise la première fois (sinon ca bug)
+        self.toolong = 10000                                    # temps maxi de la mesure en ms
+        self.high_tick = None                                   # 
+        self.echo_time = self.toolong
+        self.echo_tick = self.mesure.get_current_tick()         # valeur du temps CPU en µs
+        self.cb = self.mesure.callback(self.echo_pin, pigpio.EITHER_EDGE, self._cbf)
+
+    def _cbf(self, gpio, level, tick):
+        # Mesure de l'interval de temps (en tick) : echo_time 
+        if level == 1:
+            self.high_tick = tick
+        else:
+            if self.high_tick is not None:
+                echo_time = tick - self.high_tick
+            if echo_time < self.toolong:
+               self.echo_time = echo_time
+               self.echo_tick = tick
+            else:
+               self.echo_time = self.toolong
+            self.high_tick = None
 
     def measured(self,slow_distance):
         # Mesure de la distance
-        GPIO.output(self.trigger_pin, True)                 # Envoyer une impulsion de 10us pour déclencher la mesure (Front haut)
-        time.sleep(0.00001)                                 # on attend 10us
-        GPIO.output(self.trigger_pin, False)                # Envoyer une impulsion de 10us pour déclencher la mesure  (Front bas)
-        start = time.time()
-        while GPIO.input(self.echo_pin)==0:
-          start = time.time()
-        while GPIO.input(self.echo_pin)==1:
-          stop = time.time()
-        elapsed = stop-start                                # Calcule de la durée de l'impulsion
-        distance = elapsed * speedSound                     # La distance parcourue pendant ce temps = le temps X la vitesse du son (cm/s)
-        self.mesure_distance = distance / 2                 # C'était la distance aller et retour donc on divise la valeur par 2
+        self.mesure.gpio_trigger(self.trigger_pin, 10, 1)       # impulsion de 10us pour déclencher la mesure (Front haut)
+        time.sleep(0.00001)
+        distance = self.echo_time / 1000000.0 * speedSound      # La distance parcourue pendant ce temps = le temps X la vitesse du son (cm/s)
+        self.mesure_distance = distance / 2                     # C'était la distance aller et retour donc on divise la valeur par 2
 #        print("Distance Class: {0:5.1f}".format(self.mesure_distance))
 #        print("slow_distance Class: {0:5.1f}".format(SLOW_DISTANCE))
         # Calcul du risque de collision nécessitant de passer en vitesse réduite
@@ -287,7 +299,6 @@ class Distance(object):
         # On retourne la mesure de distance au Prog principal pour affichage sur l'IHM        
         return (self.mesure_distance)
 
-
 class ServoMotor(object):
     def __init__(self, servo_pin, servo_cal_m, servo_cal_x1, inc_angle, min_angle, max_angle, angle):
         self.servo_pin = servo_pin          # Pin GPIO du servo
@@ -298,14 +309,17 @@ class ServoMotor(object):
         self.angle_max = max_angle
         self.angle_move = angle
         self.angle_init = angle
-        self.servo = PWM.Servo()            # utilisation de la librairie RPIO qui gère les DMA
-        self.servo.__init__(0, 20000, 10)   # Initiallisation de la librairie sur DMA: 0 / f=50Hz / impultion mini: 10µs 
-        self.servo.set_servo(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
+        self.servo = pigpio.pi(pigpio_host, pigpio_tcp_port)    # utilisation de la librairie PiGPIO qui gère les DMA
+        if not self.servo.connected:
+            print("Erreur initialisation PiGPIO")
+            exit()    
+        self.servo.set_servo_pulsewidth(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
 
     def __del__(self):
         self.angle_move = self.angle_init
-        self.servo.set_servo(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
-        time.sleep(0.1)                     # pour que le servo ait le temps de revenir un possition de départ
+#        self.servo.set_servo_pulsewidth(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
+# Là j'ai un problème de compréhension du foncitonnement de la destruction des objets
+        time.sleep(0.5)                     # pour que le servo ait le temps de revenir en possition de départ
 
     def work(self,way_left,way_right):
         if (way_left == True) and (way_right == False):
@@ -322,8 +336,7 @@ class ServoMotor(object):
         print("Angle_min: {0:5.1f}".format(self.angle_min))
         print("Angle_max: {0:5.1f}".format(self.angle_max))
         print("Angle_move: {0:5.1f}".format(self.angle_move))
-        self.servo.set_servo(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
-
+        self.servo.set_servo_pulsewidth(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
 
 class Arm(object):
     def __init__(self):
@@ -331,7 +344,6 @@ class Arm(object):
         self.arm_down = False
         self.bras1 = ServoMotor(pin_bras1,bras1_servo_cal_m,bras1_servo_cal_x1,bras1_angle_inc,bras1_angle_min,bras1_angle_max,bras1_angle)
         self.bras2 = ServoMotor(pin_bras2,bras2_servo_cal_m,bras2_servo_cal_x1,bras2_angle_inc,bras2_angle_min,bras2_angle_max,bras2_angle)
-
 
     def work(self,arm_up,arm_down):
 
@@ -343,3 +355,40 @@ class Arm(object):
             self.bras1.work(False,True)
             self.bras2.work(True,False)
 
+class PushButton(object):
+    def __init__(self, bp_pin):
+        self.bp_pin = bp_pin
+        self.status = 0
+        self.bp = pigpio.pi(pigpio_host, pigpio_tcp_port)    # Création d'une instance PIGPIO
+        if not self.bp.connected:
+            print("Erreur initialisation PiGPIO")
+            exit()    
+        self.bp.set_mode(self.bp_pin, pigpio.INPUT)
+        self.high_tick = None                                 # 
+        self.bp_time = 0.0
+        self.bp_tick = self.bp.get_current_tick()         # valeur du temps CPU en µs
+        self.cb = self.bp.callback(self.bp_pin, pigpio.EITHER_EDGE, self._cbf)
+
+    def _cbf(self, gpio, level, tick):
+        # Mesure de l'interval de temps (en tick) : bp_time 
+        if level == 1:
+            self.high_tick = tick
+            print("entrée dans level 1)")
+        else:
+            if self.high_tick is not None:
+                bp_time = tick - self.high_tick
+                self.bp_time = bp_time / 1000000000.0           # Durée du maintien du bp en millisecondes
+                print("bp_time: {0:5.1f}".format(self.bp_time))
+                self.bp_tick = tick
+            self.high_tick = None
+
+    def push(self):
+        # Arret d'urgence
+        print("bp_time: {0:5.1f}".format(self.bp_time))
+        if (self.bp_time > 1) and (self.bp_time < 3000) :       # lors d'un appuie bref sur le bp < à 3 secondes
+            self.status = 1                                       # Pour arrêt des chenilles en cas de problème
+        elif self.bp_time > 3000  :                             # lors d'un appuie long sur le bp > à 3 secondes
+            self.status = 2                                       # Arrêt de l'OS
+        else :
+            self.status = 0                                       # si pas d'appuie renvoit de 0
+        return (self.status)                                      # on renvoit la valeur du BP
