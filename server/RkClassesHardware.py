@@ -97,11 +97,11 @@ MAX_SPEED = 200                 # max speed est la valeur maxi de cycle du PWM s
                                 # 200 pour les moteurs de base
                                 # 125 pour les moteurs de compétition !!!
 
-COLLISION_SPEED = 20            # min speed est la valeur maxi de cycle en cas de risque de collision
-max_speed_inc = 2
+COLLISION_SPEED = 50            # min speed est la valeur maxi de cycle en cas de risque de collision
+max_speed_inc = 5
 
 pince_angle = 20                # Position au démarrage
-pince_angle_inc = 2
+pince_angle_inc = 1
 
 bras1_angle = 50                # Position au démarrage
 bras1_angle_inc = 1
@@ -109,7 +109,8 @@ bras1_angle_inc = 1
 bras2_angle = 70                # Position au démarrage
 bras2_angle_inc = 1 
 
-pigpio_host = "localhost"
+#pigpio_host = "localhost"
+pigpio_host = "192.168.0.151"
 pigpio_tcp_port =8888
 
 #############################################################################################
@@ -200,7 +201,7 @@ class Caterpillar(object):
         self.motor.write(self.dir_pin,0)
         self.motor.write(self.leda_pin,0)
         self.motor.write(self.ledr_pin,0)
-#        self.motor.set_PWM_frequency(self.pwm_pin,8000)    # PWM Soft - Définition de la fréquence en ms soit 8KHz=8000 ou lieu de 20KHz=20000
+#        self.motor.set_PWM_frequency(self.pwm_pin,8000)    # PWM Soft - Définition de la fréquence en ms soit 8KHz=8000 au lieu de 20KHz=20000
         self.motor.hardware_PWM(self.pwm_pin, 4000, 0)      # PWM Hard - Au final 4KHz avec un dutycycle de 0%, donc moteur à l'arret
         self.motor.set_PWM_range(self.pwm_pin, 200)         # donc 50 = 1/4 à 1 pour un cycle, 100=1/2,   150=3/4, 200/on
 
@@ -212,13 +213,13 @@ class Caterpillar(object):
             self.motor.write(self.ledr_pin,0)
 
         # Marche avant
-        elif (forward == True) :
+        elif (forward == True and self.speed > 0) :
             self.motor.write(self.leda_pin,1)
             self.motor.write(self.ledr_pin,0)
             self.motor.write(self.dir_pin,0)
 
         # Marche arrière
-        elif (forward == False) :
+        elif (forward == False and self.speed > 0) :
             self.motor.write(self.leda_pin,0)
             self.motor.write(self.ledr_pin,1)
             self.motor.write(self.dir_pin,1)
@@ -239,9 +240,14 @@ class Caterpillar(object):
 
         # Ralentir et s'arrêter      
         else :
-            self.speed = self.speed - self.acceleration_inc
+            if self.speed == 0 :
+                pass
+            else:
+                self.speed = self.speed - self.acceleration_inc
+            
             if self.speed <= 0 :                                #Si on est arrêté, on y reste et pas valeur négative
                 self.speed = 0
+                
                 self.motor.write(self.leda_pin,0)
                 self.motor.write(self.ledr_pin,0)
  
@@ -332,10 +338,10 @@ class ServoMotor(object):
             if self.angle_move > self.angle_max :
                 self.angle_move = self.angle_max 
 
-        print("Angle_inc: {0:5.1f}".format(self.angle_inc))
-        print("Angle_min: {0:5.1f}".format(self.angle_min))
-        print("Angle_max: {0:5.1f}".format(self.angle_max))
-        print("Angle_move: {0:5.1f}".format(self.angle_move))
+        # print("Angle_inc: {0:5.1f}".format(self.angle_inc))
+        # print("Angle_min: {0:5.1f}".format(self.angle_min))
+        # print("Angle_max: {0:5.1f}".format(self.angle_max))
+        # print("Angle_move: {0:5.1f}".format(self.angle_move))
         self.servo.set_servo_pulsewidth(self.servo_pin, round(((self.servo_cal_m*self.angle_move)+self.servo_cal_x1)/10,0)*10)
 
 class Arm(object):
@@ -365,7 +371,7 @@ class PushButton(object):
             exit()    
         self.bp.set_mode(self.bp_pin, pigpio.INPUT)
         self.high_tick = None                                 # 
-        self.bp_time = 0.0
+        self.bp_time = 0
         self.bp_tick = self.bp.get_current_tick()         # valeur du temps CPU en µs
         self.cb = self.bp.callback(self.bp_pin, pigpio.EITHER_EDGE, self._cbf)
 
@@ -392,3 +398,6 @@ class PushButton(object):
         else :
             self.status = 0                                       # si pas d'appuie renvoit de 0
         return (self.status)                                      # on renvoit la valeur du BP
+
+
+
