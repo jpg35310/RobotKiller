@@ -102,7 +102,7 @@ class HelloWindow(QMainWindow):
         self.mqttc.on_connect = on_connect
         self.mqttc.on_disconnect = on_disconnect
         self.mqttc.on_publish = on_publish
-        self.mqttc.connect(host='localhost', port=1883)
+        self.mqttc.connect(host='192.168.0.152', port=1883)
         self.mqttc.loop_start()
 
         self.grabKeyboard()
