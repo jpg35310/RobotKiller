@@ -9,6 +9,13 @@ import paho.mqtt.client as mqtt
 
 from interfaces.MainAppUi import Ui_MainWindow
 
+#############################################################################################
+#                                Initialisation des constantes                              #
+#############################################################################################
+mqtt_host = 'localhost'
+mqtt_port = 1883
+mqtt_subscribe = 'robot'
+
 MOVE_FORWARD = ['move_forward', QtCore.Qt.Key_Up]
 MOVE_BACKWARD = ['move_back', QtCore.Qt.Key_Down]
 MOVE_LEFT = ['move_left', QtCore.Qt.Key_Left]
@@ -25,10 +32,33 @@ INIT_ROBOT_STATUS = {
     ARM_DOWN[0]: False
 }
 
+# sur la base du dico ci-dessus, il faut modifier l'intégralité du code pour 
+# fonctionner de la manière suivante :
+# INIT_ROBOT_STATUS = {
+#     MOVE_FORWARD_LEFT[0]: False,
+#     MOVE_BACKWARD_LEFT[0]: False,
+#     MOVE_FORWARD_RIGHT[0]: False,
+#     MOVE_BACKWARD_RIGHT[0]: False,
+#     ARM_UP[0]: False,
+#     ARM_DOWN[0]: False,
+#     CLAMP_OPEN[0]: False,
+#     CLAMP_CLOSE[0]: False,
+#     MAX_SPEED[0]: valeur numérique de 1 à 1000
+#     MIN_SPEED[0]: valeur numérique de 1 à 1000
+#     COLLISION[0]: valeur numérique de 1 à 1000
+# }
+
+# De plus le server_robot.py va renvoyer l'information de distance (MESURE) que ce programme
+# devra afficher dans l'interface graphique.
+
+# Et pour finir il faudra modifier l'interface graphique
+# J'ai rajouté une image qui décrit l'interface
+
 def on_connect(mqttc, userdata, rc, t):
     print('connected...rc=' + str(rc))
-    mqttc.publish(topic='device/sensor/temperature',
-                  payload='80', qos=0)
+    # A mon avis les commandes ci-dessous sont à supprimer
+    #  mqttc.publish(topic='device/sensor/temperature',
+    #               payload='80', qos=0)
 
 
 def on_disconnect(mqttc, userdata, rc):
@@ -102,7 +132,7 @@ class HelloWindow(QMainWindow):
         self.mqttc.on_connect = on_connect
         self.mqttc.on_disconnect = on_disconnect
         self.mqttc.on_publish = on_publish
-        self.mqttc.connect(host='192.168.0.152', port=1883)
+        self.mqttc.connect(host=mqtt_host, port=mqtt_port)
         self.mqttc.loop_start()
 
         self.grabKeyboard()
@@ -138,7 +168,7 @@ class HelloWindow(QMainWindow):
             self.send_robot_status()
 
     def send_robot_status(self):
-        self.mqttc.publish('robot', json.dumps(self.ROBOT_STATUS), 1)
+        self.mqttc.publish(mqtt_subscribe, json.dumps(self.ROBOT_STATUS), 1)
 
     def prepare_navigation_buttons(self):
         def btn_click(btn, action):
@@ -177,7 +207,7 @@ class HelloWindow(QMainWindow):
     def init_timer(self):
         self.game_round = 120
 
-        self.game_time = QtCore.QTime(0, 0, 10)
+        self.game_time = QtCore.QTime(0, 0, 30)
         self.ui.timeLeftLcd.display(self.game_time.toString('mm:ss'))
 
         self.game_timer = QtCore.QTimer()
@@ -185,7 +215,7 @@ class HelloWindow(QMainWindow):
 
     def startTimer(self):
         try:
-            self.game_timer.start(1000)
+            self.game_timer.start(1000) # Timer du jeu en ms
             self.game_started = True
         except Exception as e:
             print("Exception:", e)
