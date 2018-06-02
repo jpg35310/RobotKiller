@@ -16,18 +16,18 @@ mqtt_host = '192.168.0.151'
 mqtt_port = 1883
 mqtt_subscribe = 'robot'
 
-MOVE_FORWARD_LEFT = ['move_forward_left', QtCore.Qt.Key_Up]
-MOVE_BACKWARD_LEFT = ['move_backward_left', QtCore.Qt.Key_Down]
-MOVE_FORWARD_RIGHT = ['move_forward_right', QtCore.Qt.Key_Left]
-MOVE_BACKWARD_RIGHT = ['move_backward_right', QtCore.Qt.Key_Right]
+MOVE_FORWARD = ['move_forward', QtCore.Qt.Key_Up]
+MOVE_BACKWARD = ['move_back', QtCore.Qt.Key_Down]
+MOVE_LEFT = ['move_left', QtCore.Qt.Key_Left]
+MOVE_RIGHT = ['move_right', QtCore.Qt.Key_Right]
 ARM_UP = ['arm_up', QtCore.Qt.Key_W]
 ARM_DOWN = ['arm_down', QtCore.Qt.Key_S]
 
 INIT_ROBOT_STATUS = {
-    MOVE_FORWARD_LEFT[0]: False,
-    MOVE_BACKWARD_LEFT[0]: False,
-    MOVE_FORWARD_RIGHT[0]: False,
-    MOVE_BACKWARD_RIGHT[0]: False,
+    MOVE_FORWARD[0]: False,
+    MOVE_BACKWARD[0]: False,
+    MOVE_LEFT[0]: False,
+    MOVE_RIGHT[0]: False,
     ARM_UP[0]: False,
     ARM_DOWN[0]: False
 }
@@ -84,53 +84,47 @@ class HelloWindow(QMainWindow):
         self.ROBOT_STATUS = self.init_robot_status()
 
         self.KEYS = {
-            MOVE_FORWARD_LEFT[1]: {
+            MOVE_FORWARD[1]: {
                 'function': self.send_to_robot,
-                'action': MOVE_FORWARD_LEFT[0],
-                'button_name': 'mvForwardButton',  # Ca doit être le nom du bouton dans QTDesigner
+                'action': MOVE_FORWARD[0],
+                'button_name': 'mvForwardButton',
                 'button': None,
-                'restrict_with': [ARM_UP[0]] # j'ai mis un truc par pas que ca plante
-#                'restrict_with': [MOVE_BACKWARD_LEFT[0]]
+                'restrict_with': [MOVE_BACKWARD[0]]
             },
-            MOVE_BACKWARD_LEFT[1]: {
+            MOVE_BACKWARD[1]: {
                 'function': self.send_to_robot,
-                'action': MOVE_BACKWARD_LEFT[0],
+                'action': MOVE_BACKWARD[0],
                 'button_name': 'mvBackButton',
                 'button': None,
-                'restrict_with': [ARM_UP[0]]
-#                'restrict_with': [MOVE_FORWARD_LEFT[0]]
+                'restrict_with': [MOVE_FORWARD[0]]
             },
-            MOVE_FORWARD_RIGHT[1]: {
+            MOVE_LEFT[1]: {
                 'function': self.send_to_robot,
-                'action': MOVE_FORWARD_RIGHT[0],
+                'action': MOVE_LEFT[0],
                 'button_name': 'mvLeftButton',
                 'button': None,
-                'restrict_with': [ARM_UP[0]]
-#                'restrict_with': [MOVE_BACKWARD_RIGHT[0]]
+                'restrict_with': [MOVE_RIGHT[0]]
             },
-            MOVE_BACKWARD_RIGHT[1]: {
+            MOVE_RIGHT[1]: {
                 'function': self.send_to_robot,
-                'action': MOVE_BACKWARD_RIGHT[0],
+                'action': MOVE_RIGHT[0],
                 'button_name': 'mvRightButton',
                 'button': None,
-                'restrict_with': [ARM_UP[0]]
-#                'restrict_with': [MOVE_FORWARD_RIGHT[0]]
+                'restrict_with': [MOVE_LEFT[0]]
             },
             ARM_UP[1]: {
                 'function': self.send_to_robot,
                 'action': ARM_UP[0],
                 'button_name': 'chFwButton',
                 'button': None,
-                'restrict_with': [ARM_UP[0]]
-#                'restrict_with': [ARM_DOWN[0]]
+                'restrict_with': [ARM_DOWN[0]]
             },
             ARM_DOWN[1]: {
                 'function': self.send_to_robot,
                 'action': ARM_DOWN[0],
                 'button_name': 'chBackButton',
                 'button': None,
-                'restrict_with': [ARM_DOWN[0]]
-#                'restrict_with': [ARM_UP[0]]
+                'restrict_with': [ARM_UP[0]]
             },
         }
 
@@ -182,23 +176,23 @@ class HelloWindow(QMainWindow):
 
         # /********** Forward Button ********/
         self.ui.mvForwardButton.setCheckable(True)
-        self.ui.mvForwardButton.clicked.connect(lambda: btn_click(self.ui.mvForwardButton, self.KEYS[MOVE_FORWARD_LEFT[1]]))
-        self.KEYS[MOVE_FORWARD_LEFT[1]]['button'] = self.ui.mvForwardButton
+        self.ui.mvForwardButton.clicked.connect(lambda: btn_click(self.ui.mvForwardButton, self.KEYS[MOVE_FORWARD[1]]))
+        self.KEYS[MOVE_FORWARD[1]]['button'] = self.ui.mvForwardButton
 
         # /********** Backward Button ********/
         self.ui.mvBackButton.setCheckable(True)
-        self.ui.mvBackButton.clicked.connect(lambda: btn_click(self.ui.mvBackButton, self.KEYS[MOVE_BACKWARD_LEFT[1]]))
-        self.KEYS[MOVE_BACKWARD_LEFT[1]]['button'] = self.ui.mvBackButton
+        self.ui.mvBackButton.clicked.connect(lambda: btn_click(self.ui.mvBackButton, self.KEYS[MOVE_BACKWARD[1]]))
+        self.KEYS[MOVE_BACKWARD[1]]['button'] = self.ui.mvBackButton
 
         # /********** Turn Left Button ********/
         self.ui.mvLeftButton.setCheckable(True)
-        self.ui.mvLeftButton.clicked.connect(lambda: btn_click(self.ui.mvLeftButton, self.KEYS[MOVE_FORWARD_RIGHT[1]]))
-        self.KEYS[MOVE_FORWARD_RIGHT[1]]['button'] = self.ui.mvLeftButton
+        self.ui.mvLeftButton.clicked.connect(lambda: btn_click(self.ui.mvLeftButton, self.KEYS[MOVE_LEFT[1]]))
+        self.KEYS[MOVE_LEFT[1]]['button'] = self.ui.mvLeftButton
 
         # /********** Turn Right Button ********/
         self.ui.mvRightButton.setCheckable(True)
-        self.ui.mvRightButton.clicked.connect(lambda: btn_click(self.ui.mvRightButton, self.KEYS[MOVE_BACKWARD_RIGHT[1]]))
-        self.KEYS[MOVE_BACKWARD_RIGHT[1]]['button'] = self.ui.mvRightButton
+        self.ui.mvRightButton.clicked.connect(lambda: btn_click(self.ui.mvRightButton, self.KEYS[MOVE_RIGHT[1]]))
+        self.KEYS[MOVE_RIGHT[1]]['button'] = self.ui.mvRightButton
 
         # /********** Lift Arm Up Button ********/
         self.ui.chFwButton.setCheckable(True)

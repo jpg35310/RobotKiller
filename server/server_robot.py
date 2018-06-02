@@ -27,7 +27,9 @@ mqtt_subscribe = 'robot'
 #                                Initialisation des variables                               #
 #############################################################################################
 # En majuscule les variables globales
-MESSAGE_FROM_MQTT = {}
+#MESSAGE_FROM_MQTT = {"move_forward_left": false, "move_backward_left": false, "move_forward_right": false, "move_backward_right": false, "arm_up": true, "arm_down": false}
+
+MESSAGE_FROM_MQTT ={}
 MESSAGE_TO_MQTT = "Echec" # A definir pour renvoyer l'info de distance à l'IHM
 
 move_forward_left   = False
@@ -67,7 +69,8 @@ class Mosquitto(object):
         print('message received...')
         print('topic: ' + msg.topic + ', qos: ' + str(msg.qos) + ', message: ' + str(msg.payload))
         global MESSAGE_FROM_MQTT
-        MESSAGE_FROM_MQTT = json.loads(msg.payload)
+#        MESSAGE_FROM_MQTT = json.loads(msg.payload) # Sous windows
+        MESSAGE_FROM_MQTT = json.loads(msg.payload.decode('utf-8')) # Sous Raspberry Pi
 
     def on_subscribe(self, mqttc, userdata, mid, granted_qos):
         print('subscribed (qos=' + str(granted_qos) + ')')
@@ -108,17 +111,27 @@ if __name__ == '__main__':
 
         time.sleep(0.2) # Pour gérer la vitesse de la boucle while      
 #        print("Ca marche bien")
-        
-        move_forward_left=MESSAGE_FROM_MQTT.get("move_forward_left")
-        move_backward_left=MESSAGE_FROM_MQTT.get("move_backward_left")
-        move_forward_right=MESSAGE_FROM_MQTT.get("move_forward_right")
-        move_backward_right=MESSAGE_FROM_MQTT.get("move_backward_right")
-        arm_up=MESSAGE_FROM_MQTT.get("arm_up")
-        arm_down=MESSAGE_FROM_MQTT.get("arm_down")
-        clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
-        clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
+
+        # print("traitement")
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("move_forward_left")))
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("move_backward_left")))
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("move_forward_right")))
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("move_backward_right")))
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("arm_up")))
+        # print('move_forward_left' + str(MESSAGE_FROM_MQTT.get("arm_down")))
+
+        move_forward_left = MESSAGE_FROM_MQTT.get("move_forward_left")
+        move_backward_left = MESSAGE_FROM_MQTT.get("move_backward_left")
+        move_forward_right = MESSAGE_FROM_MQTT.get("move_forward_right")
+        move_backward_right = MESSAGE_FROM_MQTT.get("move_backward_right")
+        arm_up = MESSAGE_FROM_MQTT.get("arm_up")
+        arm_down = MESSAGE_FROM_MQTT.get("arm_down")
+
+#        clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
+#        clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
               
-        robotkiller.pince.work(clamp_open,clamp_close) 
+#        robotkiller.pince.work(clamp_open,clamp_close) 
+
         robotkiller.arm.work(arm_up,arm_down)
         robotkiller.left.running(max_speed, min_speed, move_forward_left,move_backward_left, False)
         robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)

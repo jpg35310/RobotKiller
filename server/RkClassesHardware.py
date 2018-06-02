@@ -108,8 +108,8 @@ bras1_angle_inc = 1
 bras2_angle = 70                # Position au démarrage
 bras2_angle_inc = 1 
 
-#pigpio_host = "localhost"
-pigpio_host = "192.168.0.151"
+pigpio_host = "localhost"
+#pigpio_host = "192.168.0.151"
 pigpio_tcp_port =8888
 
 #############################################################################################
