@@ -30,6 +30,18 @@ mqtt_subscribe = 'robot'
 MESSAGE_FROM_MQTT = {}
 MESSAGE_TO_MQTT = "Echec" # A definir pour renvoyer l'info de distance à l'IHM
 
+move_forward_left   = False
+move_backward_left  = False
+move_forward_right  = False
+move_backward_right = False
+arm_up              = False
+arm_down            = False
+clamp_open          = False
+clamp_close         = False
+max_speed           = 100
+min_speed           = 50
+
+
 #############################################################################################
 #                                       Class                                               #
 #############################################################################################
@@ -79,6 +91,7 @@ if __name__ == '__main__':
     count_time = 0
     game_time = 60
 
+    robotkiller = Robotkiller()
     mosquitto = Mosquitto()
     mosquitto.start()
  
@@ -105,13 +118,13 @@ if __name__ == '__main__':
         clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
         clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
               
-        robotkiller.pince.work(CLAMP_OPEN,CLAMP_CLOSE) 
-        robotkiller.arm.work(ARM_UP,ARM_DOWN)
-        robotkiller.left.running(MAX_SPEED, MIN_SPEED, MOVE_FORWARD_LEFT,MOVE_BACKWARD_LEFT)
-        robotkiller.right.running(MAX_SPEED, MIN_SPEED, MOVE_FORWARD_RIGHT,MOVE_BACKWARD_RIGHT)
+        robotkiller.pince.work(clamp_open,clamp_close) 
+        robotkiller.arm.work(arm_up,arm_down)
+        robotkiller.left.running(max_speed, min_speed, move_forward_left,move_backward_left, False)
+        robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)
 
         # Et il faut que je fasse la communication vers MQTT avec JSON + dico comme dans game.py
-        mesure_distance = robotkiller.eyes.measured(slow_distance)
+        # mesure_distance = robotkiller.eyes.measured(slow_distance)
 
 
     mosquitto.stop()

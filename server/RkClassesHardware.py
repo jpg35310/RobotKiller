@@ -208,7 +208,7 @@ class Caterpillar(object):
     def running(self,max_speed,min_speed,move_forward,move_backward,move_stop):
 
         # Arret d'urgence
-        if (move_stop == True) or ((move_forward == True) and (self.last_direction = "backward")) or ((move_backward == True) and (self.last_direction = "forward")) : 
+        if (move_stop == True) or ((move_forward == True) and (self.last_direction == "backward")) or ((move_backward == True) and (self.last_direction == "forward")) : 
             self.speed = 0
             self.motor.write(self.leda_pin,0)
             self.motor.write(self.ledr_pin,0)
@@ -226,13 +226,13 @@ class Caterpillar(object):
             self.motor.write(self.dir_pin,1)
 
         # Acceleration et sécurité      
-        if (COLLISION == True) and ((move_forward == True) or ((move_backward == True) :
+        if COLLISION == True and (move_forward == True or move_backward == True) :
             if self.speed < COLLISION_SPEED :                
                 self.speed = self.speed + self.acceleration_inc
             if self.speed > COLLISION_SPEED :                
                 self.speed = self.speed - self.acceleration_inc
 
-        elif ((move_forward == True) or ((move_backward == True)) and  (move_stop == False):  
+        elif (move_forward == True or move_backward == True) and move_stop == False :  
             self.speed = self.speed + self.acceleration_inc
             if self.speed > max_speed :                         #Vitesse maxi du jeu
                 self.speed = max_speed
@@ -257,9 +257,9 @@ class Caterpillar(object):
 
 
         # Mémorisation du sens de rotation
-        if move_forward = True :
+        if move_forward == True :
             self.last_direction = "forward"                           
-        elif move_backward = True :
+        elif move_backward == True :
             self.last_direction = "backward"                           
         
 class Distance(object):
