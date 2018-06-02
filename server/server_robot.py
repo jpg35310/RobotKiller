@@ -94,38 +94,24 @@ if __name__ == '__main__':
             prog_game = False
 
         time.sleep(0.2) # Pour gérer la vitesse de la boucle while      
-        print("Ca marche bien")
+#        print("Ca marche bien")
         
-        move_forward=MESSAGE_FROM_MQTT.get("move_forward")
-        move_back=MESSAGE_FROM_MQTT.get("move_back")
-        move_left=MESSAGE_FROM_MQTT.get("move_left")
-        move_right=MESSAGE_FROM_MQTT.get("move_right")
+        move_forward_left=MESSAGE_FROM_MQTT.get("move_forward_left")
+        move_backward_left=MESSAGE_FROM_MQTT.get("move_backward_left")
+        move_forward_right=MESSAGE_FROM_MQTT.get("move_forward_right")
+        move_backward_right=MESSAGE_FROM_MQTT.get("move_backward_right")
         arm_up=MESSAGE_FROM_MQTT.get("arm_up")
         arm_down=MESSAGE_FROM_MQTT.get("arm_down")
-                
-        print(move_forward)
-        print(move_back)
-        print(move_left)
-        print(move_right)
-        print(arm_up)
-        print(arm_down)
-
-        # Mais ce n'est pas bon => Il faut que je modifie un peu la lib RkClassesHardware
-        # 
-        # Aujourd'hui j'ai cela :   
-        # robotkiller.pince.work(clamp_open,clamp_close)
-        # robotkiller.arm.work(arm_move_up,arm_move_down)
-        # robotkiller.left.running(caterpillar_speed,caterpillar_left_go,caterpillar_left_way,caterpillar_left_stop)
-        # robotkiller.right.running(caterpillar_speed,caterpillar_right_go,caterpillar_right_way,caterpillar_right_stop)
-        #
-        # Il faut que je passe à cela :
-        # robotkiller.pince.work(CLAMP_OPEN,CLAMP_CLOSE) => OK
-        # robotkiller.arm.work(ARM_UP,ARM_DOWN) => OK
-        # robotkiller.left.running(MAX_SPEED, MIN_SPEED, COLLISION,MOVE_FORWARD_LEFT,MOVE_BACKWARD_LEFT) => A modifier
-        # robotkiller.right.running(MAX_SPEED, MIN_SPEED, COLLISION,MOVE_FORWARD_RIGHT,MOVE_BACKWARD_RIGHT) => A modifier
+        clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
+        clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
+              
+        robotkiller.pince.work(CLAMP_OPEN,CLAMP_CLOSE) 
+        robotkiller.arm.work(ARM_UP,ARM_DOWN)
+        robotkiller.left.running(MAX_SPEED, MIN_SPEED, MOVE_FORWARD_LEFT,MOVE_BACKWARD_LEFT)
+        robotkiller.right.running(MAX_SPEED, MIN_SPEED, MOVE_FORWARD_RIGHT,MOVE_BACKWARD_RIGHT)
 
         # Et il faut que je fasse la communication vers MQTT avec JSON + dico comme dans game.py
-        # MESURE = robotkiller.eyes.measured(COLLISION) => OK
+        mesure_distance = robotkiller.eyes.measured(slow_distance)
 
 
     mosquitto.stop()

@@ -12,7 +12,7 @@ from interfaces.MainAppUi import Ui_MainWindow
 #############################################################################################
 #                                Initialisation des constantes                              #
 #############################################################################################
-mqtt_host = 'localhost'
+mqtt_host = '192.168.0.151'
 mqtt_port = 1883
 mqtt_subscribe = 'robot'
 
@@ -43,12 +43,12 @@ INIT_ROBOT_STATUS = {
 #     ARM_DOWN[0]: False,
 #     CLAMP_OPEN[0]: False,
 #     CLAMP_CLOSE[0]: False,
-#     MAX_SPEED[0]: valeur numérique de 1 à 1000
-#     MIN_SPEED[0]: valeur numérique de 1 à 1000
-#     COLLISION[0]: valeur numérique de 1 à 1000
+#     MAX_SPEED[0]: valeur numérique de 1 à 1000 => cela provient de la configuration
+#     MIN_SPEED[0]: valeur numérique de 1 à 1000 => cela provient de la configuration
+#     SLOW_DISTANCE[0]: valeur numérique de 1 à 1000   => cela provient de la configuration
 # }
 
-# De plus le server_robot.py va renvoyer l'information de distance (MESURE) que ce programme
+# De plus le server_robot.py va renvoyer l'information de distance (MESURE_DISTANCE) que ce programme
 # devra afficher dans l'interface graphique.
 
 # Et pour finir il faudra modifier l'interface graphique

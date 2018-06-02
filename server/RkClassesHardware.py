@@ -123,13 +123,14 @@ pigpio_tcp_port =8888
 #   avec un temps de cycle de 20 à 100ms / test réalisé à 30ms                              #
 #                                                                                           #
 #   Fonctionnement des chenilles:                                                           #
-#   robotkiller.right.running(max_speed,acceleration,forward,stopping)                      #
-#   robotkiller.left.running(max_speed,acceleration,forward,stopping)                       #
-#       max_speed = vitesse maxi du jeu de 0=arret à 100=maxi / test réalisé à 80 et 100    # 
-#       acceleration: "True" = touche clavier enfoncé, le moteur accélé jusqu'a max_speed   # 
-#                     "False" = touche clavier relaché, le moteur ralenti puis s'arrête     # 
-#       forward: "True" = avancer / "Flase" = marche arrière                                #
-#       stopping: "True" = Arrêt                                                            #
+#   robotkiller.right.running(max_speed,acceleration,forward,move_stop)                     #
+#   robotkiller.left.running(max_speed,acceleration,forward,move_stop)                      #
+#       max_speed = vitesse maxi du jeu de 0=arret à 200=maxi / test réalisé à 80 et 100    #
+#       min_speed = Vitesse maxi en cas de risque de collision                              # 
+#       move_forward: "True" = touche clavier enfoncé, le moteur accélé jusqu'a max_speed   # 
+#                     "False" = touche clavier relaché, le moteur ralenti puis s'arrête     #
+#       move_backward: idem move forward                                                    # 
+#       move_stop: "True" = Arrêt                                                           #
 #                                                                                           #
 #   Fonctionnement du capteur de distance:                                                  #
 #   mesure_distance = robotkiller.eyes.measured(slow_distance)                              #
@@ -162,9 +163,9 @@ class Robotkiller(object):
         self.eyes = Distance(pin_echo, pin_trigger)
         self.button = PushButton(pin_bp)
 
-    def runnings(self,left_max_speed,left_acceleration,left_forward,left_stopping,right_max_speed,right_acceleration,right_forward,right_stopping):
-        self.left.running(left_max_speed,left_acceleration,left_forward,left_stopping)
-        self.right.running(right_max_speed,right_acceleration,right_forward,right_stopping)
+    def runnings(self,left_max_speed, left_min_speed, left_move_forward, left_backward, left_move_stop, right_max_speed, right_min_speed, right_move_forward, right_backward, right_move_stop):
+        self.left.running(left_max_speed, left_min_speed, left_move_forward, left_backward, left_move_stop)
+        self.right.running(right_max_speed, right_min_speed, right_move_forward, right_backward, right_move_stop)
 
     def measures(self,slow_distance,mesure_distance):
         self.eyes.measured(slow_distance)
@@ -204,33 +205,34 @@ class Caterpillar(object):
         self.motor.hardware_PWM(self.pwm_pin, 4000, 0)      # PWM Hard - Au final 4KHz avec un dutycycle de 0%, donc moteur à l'arret
         self.motor.set_PWM_range(self.pwm_pin, 200)         # donc 50 = 1/4 à 1 pour un cycle, 100=1/2,   150=3/4, 200/on
 
-    def running(self,max_speed,acceleration,forward,stopping):
+    def running(self,max_speed,min_speed,move_forward,move_backward,move_stop):
+
         # Arret d'urgence
-        if (stopping == True) or ((acceleration == True) and (forward != self.last_direction)) : 
+        if (move_stop == True) or ((move_forward == True) and (self.last_direction = "backward")) or ((move_backward == True) and (self.last_direction = "forward")) : 
             self.speed = 0
             self.motor.write(self.leda_pin,0)
             self.motor.write(self.ledr_pin,0)
 
         # Marche avant
-        elif (forward == True and self.speed > 0) :
+        elif (move_forward == True and self.speed > 0) :
             self.motor.write(self.leda_pin,1)
             self.motor.write(self.ledr_pin,0)
             self.motor.write(self.dir_pin,0)
 
         # Marche arrière
-        elif (forward == False and self.speed > 0) :
+        elif (move_backward == True and self.speed > 0) :
             self.motor.write(self.leda_pin,0)
             self.motor.write(self.ledr_pin,1)
             self.motor.write(self.dir_pin,1)
 
         # Acceleration et sécurité      
-        if (COLLISION == True) and (acceleration == True) :
+        if (COLLISION == True) and ((move_forward == True) or ((move_backward == True) :
             if self.speed < COLLISION_SPEED :                
                 self.speed = self.speed + self.acceleration_inc
             if self.speed > COLLISION_SPEED :                
                 self.speed = self.speed - self.acceleration_inc
 
-        elif (acceleration == True) and  (stopping == False):  
+        elif ((move_forward == True) or ((move_backward == True)) and  (move_stop == False):  
             self.speed = self.speed + self.acceleration_inc
             if self.speed > max_speed :                         #Vitesse maxi du jeu
                 self.speed = max_speed
@@ -252,8 +254,14 @@ class Caterpillar(object):
  
         self.motor.set_PWM_dutycycle(self.pwm_pin, self.speed)  # Envois de la nouvelle vitesse au moteur
 #        print("Speed Cycle: {0:5.1f}".format(self.speed))
-        self.last_direction = forward                           # Mémorisation du sens de rotation
 
+
+        # Mémorisation du sens de rotation
+        if move_forward = True :
+            self.last_direction = "forward"                           
+        elif move_backward = True :
+            self.last_direction = "backward"                           
+        
 class Distance(object):
     def __init__(self, pin_echo, pin_trigger):
         self.echo_pin = pin_echo
