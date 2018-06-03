@@ -109,6 +109,8 @@ if __name__ == '__main__':
         if count_time > game_time :
             prog_game = False
 
+        measure_distance = 9999999
+
         time.sleep(0.2) # Pour gérer la vitesse de la boucle while      
 #        print("Ca marche bien")
 
@@ -126,18 +128,25 @@ if __name__ == '__main__':
         move_backward_right = MESSAGE_FROM_MQTT.get("move_backward_right")
         arm_up = MESSAGE_FROM_MQTT.get("arm_up")
         arm_down = MESSAGE_FROM_MQTT.get("arm_down")
+        distance = MESSAGE_FROM_MQTT.get("distance")
 
-#        clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
-#        clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
+        clamp_open=MESSAGE_FROM_MQTT.get("clamp_open")
+        clamp_close=MESSAGE_FROM_MQTT.get("clamp_close")
               
 #        robotkiller.pince.work(clamp_open,clamp_close) 
 
         robotkiller.arm.work(arm_up,arm_down)
-        robotkiller.left.running(max_speed, min_speed, move_forward_left,move_backward_left, False)
+        robotkiller.left.running(max_speed, min_speed, move_forward_left, move_backward_left, False)
         robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)
 
         # Et il faut que je fasse la communication vers MQTT avec JSON + dico comme dans game.py
+        # Voila
+        distance_to_collision = int(robotkiller.eyes.measured(distance))
+        if not measure_distance == distance_to_collision:
+            measure_distance = distance_to_collision
+            mosquitto.mqttc.publish('robot', json.dumps({'collision': measure_distance}))
         # mesure_distance = robotkiller.eyes.measured(slow_distance)
+
 
 
     mosquitto.stop()
