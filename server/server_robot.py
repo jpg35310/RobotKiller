@@ -69,7 +69,8 @@ class Mosquitto(object):
         print('topic: ' + msg.topic + ', qos: ' + str(msg.qos) + ', message: ' + str(msg.payload))
         global MESSAGE_FROM_MQTT
 #        MESSAGE_FROM_MQTT = json.loads(msg.payload) # Sous windows
-        MESSAGE_FROM_MQTT = json.loads(msg.payload.decode('utf-8')) # Sous Raspberry Pi
+        message = json.loads(msg.payload.decode('utf-8')) # Sous Raspberry Pi
+        MESSAGE_FROM_MQTT.update(message)
 
     def on_subscribe(self, mqttc, userdata, mid, granted_qos):
         print('subscribed (qos=' + str(granted_qos) + ')')
@@ -151,6 +152,7 @@ if __name__ == '__main__':
                 measure_distance = distance_to_collision
                 mosquitto.mqttc.publish('robot', json.dumps({'collision': measure_distance}))
             # mesure_distance = robotkiller.eyes.measured(slow_distance)
+            time.sleep(0.2)
 
 
 
