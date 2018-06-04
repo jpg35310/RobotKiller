@@ -124,7 +124,7 @@ if __name__ == '__main__':
         is_playing = MESSAGE_FROM_MQTT.get("working", False)
         max_speed = MESSAGE_FROM_MQTT.get("max_speed", 200)
         min_speed = MESSAGE_FROM_MQTT.get("min_speed", 50)
-        distance = MESSAGE_FROM_MQTT.get("distance", 10)
+        measure_distance = MESSAGE_FROM_MQTT.get("distance", 10)
 
         while is_playing:
             is_playing = MESSAGE_FROM_MQTT.get("working", False)
