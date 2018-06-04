@@ -99,6 +99,7 @@ if __name__ == '__main__':
     mosquitto.start()
  
     print("Lancement boucle robot")
+    measure_distance = 9999999
     while True:
         # Pour les tests je garde la temporisation
         # Mais je dois remplacer cela par un arret depuis le bouton poussoir du robot
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         # if count_time > game_time :
         #     prog_game = False
         #
-        measure_distance = 9999999
+
         #
         # time.sleep(0.2) # Pour gérer la vitesse de la boucle while
 #        print("Ca marche bien")
@@ -127,32 +128,34 @@ if __name__ == '__main__':
         min_speed = MESSAGE_FROM_MQTT.get("min_speed", 50)
         distance = MESSAGE_FROM_MQTT.get("distance", 10)
 
-        while is_playing:
-            is_playing = MESSAGE_FROM_MQTT.get("working", False)
-            move_forward_left = MESSAGE_FROM_MQTT.get("move_forward_left", False)
-            move_backward_left = MESSAGE_FROM_MQTT.get("move_backward_left", False)
-            move_forward_right = MESSAGE_FROM_MQTT.get("move_forward_right", False)
-            move_backward_right = MESSAGE_FROM_MQTT.get("move_backward_right", False)
-            arm_up = MESSAGE_FROM_MQTT.get("arm_up", False)
-            arm_down = MESSAGE_FROM_MQTT.get("arm_down", False)
+        is_playing = MESSAGE_FROM_MQTT.get("working", False)
+        move_forward_left = MESSAGE_FROM_MQTT.get("move_forward_left", False)
+        move_backward_left = MESSAGE_FROM_MQTT.get("move_backward_left", False)
+        move_forward_right = MESSAGE_FROM_MQTT.get("move_forward_right", False)
+        move_backward_right = MESSAGE_FROM_MQTT.get("move_backward_right", False)
+        arm_up = MESSAGE_FROM_MQTT.get("arm_up", False)
+        arm_down = MESSAGE_FROM_MQTT.get("arm_down", False)
 
-            clamp_open = MESSAGE_FROM_MQTT.get("clamp_open", False)
-            clamp_close = MESSAGE_FROM_MQTT.get("clamp_close", False)
+        clamp_open = MESSAGE_FROM_MQTT.get("clamp_open", False)
+        clamp_close = MESSAGE_FROM_MQTT.get("clamp_close", False)
 
-    #        robotkiller.pince.work(clamp_open,clamp_close)
+#        robotkiller.pince.work(clamp_open,clamp_close)
 
-            robotkiller.arm.work(arm_up,arm_down)
-            robotkiller.left.running(max_speed, min_speed, move_forward_left, move_backward_left, False)
-            robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)
+        robotkiller.arm.work(arm_up,arm_down)
+        robotkiller.left.running(max_speed, min_speed, move_forward_left, move_backward_left, False)
+        robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)
 
-            # Et il faut que je fasse la communication vers MQTT avec JSON + dico comme dans game.py
-            # Voila
-            distance_to_collision = int(robotkiller.eyes.measured(distance))
-            if not measure_distance == distance_to_collision:
-                measure_distance = distance_to_collision
-                mosquitto.mqttc.publish('robot', json.dumps({'collision': measure_distance}))
-            # mesure_distance = robotkiller.eyes.measured(slow_distance)
-            time.sleep(0.02)
+        # Et il faut que je fasse la communication vers MQTT avec JSON + dico comme dans game.py
+        # Voila
+        distance_to_collision = int(robotkiller.eyes.measured(distance))
+        if not measure_distance == distance_to_collision:
+            measure_distance = distance_to_collision
+            mosquitto.mqttc.publish('robot', json.dumps({'collision': measure_distance}))
+        # mesure_distance = robotkiller.eyes.measured(slow_distance)
+        time.sleep(0.02)
+
+        if is_playing:
+            measure_distance = 9999999
 
     mosquitto.stop()
     print("C'est fini")
