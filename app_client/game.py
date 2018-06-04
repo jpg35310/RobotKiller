@@ -30,15 +30,16 @@ INIT_ROBOT_STATUS = {
     MOVE_BACKWARD_LEFT[0]: False,
     MOVE_FORWARD_RIGHT[0]: False,
     MOVE_BACKWARD_RIGHT[0]: False,
-    ARM_UP[0]: False,
+    ARM_UP[0]: True,
     ARM_DOWN[0]: False,
-    CLAMP_OPEN[0]: False,
+    CLAMP_OPEN[0]: True,
     CLAMP_CLOSE[0]: False,
     'min_speed': 50,
     'max_speed': 100,
     'distance': 10,
     'working': False
 }
+
 
 def on_connect(mqttc, userdata, rc, t):
     print('connected...rc=' + str(rc))
@@ -54,6 +55,11 @@ def on_disconnect(mqttc, userdata, rc):
 def on_publish(mqttc, userdata, mid):
     print('message published')
     # mqttc.disconnect()
+
+
+def on_message(self, mqttc, userdata, msg):
+    print('message received...')
+    print('topic: ' + msg.topic + ', qos: ' + str(msg.qos) + ', message: ' + str(msg.payload))
 
 
 class Position:
@@ -134,6 +140,7 @@ class HelloWindow(QMainWindow):
         self.mqttc.on_publish = on_publish
         self.mqttc.on_message = self.on_message
         self.mqttc.connect(host=mqtt_host, port=mqtt_port)
+        self.mqttc.subscribe('robot', 1)
         self.mqttc.loop_start()
 
         self.grabKeyboard()
@@ -151,7 +158,7 @@ class HelloWindow(QMainWindow):
 
     def on_message(self, mqttc, userdata, msg):
         message = json.loads(msg.payload)
-        if 'collision' in message:
+        if 'collision' in message and self.game_started:
             self.update_distance_lcd(message['collision'])
 
     @staticmethod
@@ -255,6 +262,7 @@ class HelloWindow(QMainWindow):
         self.ROBOT_STATUS['working'] = False
         self.send_robot_status()
         self.game_started = False
+        self.update_distance_lcd(0)
         self.init_timer()
 
     def enterEvent(self, event):
