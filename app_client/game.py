@@ -12,7 +12,7 @@ from interfaces.MainAppUi import Ui_MainWindow
 #############################################################################################
 #                                Initialisation des constantes                              #
 #############################################################################################
-mqtt_host = 'localhost'
+mqtt_host = '192.168.0.43'
 mqtt_port = 1883
 mqtt_subscribe = 'robot'
 
@@ -36,6 +36,8 @@ INIT_ROBOT_STATUS = {
     CLAMP_CLOSE[0]: False,
     'min_speed': 50,
     'max_speed': 100,
+    'distance': 10,
+    'working': False
 }
 
 def on_connect(mqttc, userdata, rc, t):
@@ -232,6 +234,7 @@ class HelloWindow(QMainWindow):
         try:
             self.game_timer.start(1000) # Timer du jeu en ms
             self.game_started = True
+            self.ROBOT_STATUS['working'] = self.game_started
         except Exception as e:
             print("Exception:", e)
 
