@@ -250,6 +250,9 @@ class HelloWindow(QMainWindow):
 
     def stop_game(self):
         self.ROBOT_STATUS = self.init_robot_status()
+        self.ROBOT_STATUS['working'] = True
+        self.send_robot_status()
+        self.ROBOT_STATUS['working'] = False
         self.send_robot_status()
         self.game_started = False
         self.init_timer()

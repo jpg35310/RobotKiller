@@ -152,9 +152,7 @@ if __name__ == '__main__':
                 measure_distance = distance_to_collision
                 mosquitto.mqttc.publish('robot', json.dumps({'collision': measure_distance}))
             # mesure_distance = robotkiller.eyes.measured(slow_distance)
-            time.sleep(0.2)
-
-
+            time.sleep(0.02)
 
     mosquitto.stop()
     print("C'est fini")
