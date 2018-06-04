@@ -18,10 +18,10 @@ mqtt_subscribe = 'robot'
 
 MOVE_FORWARD_LEFT = ['move_forward_left', QtCore.Qt.Key_Shift]
 MOVE_BACKWARD_LEFT = ['move_backward_left', QtCore.Qt.Key_Control]
-MOVE_FORWARD_RIGHT = ['move_forward_right', QtCore.Qt.Key_Shift]
-MOVE_BACKWARD_RIGHT = ['move_backward_right', QtCore.Qt.Key_Control]
+MOVE_FORWARD_RIGHT = ['move_forward_right', QtCore.Qt.Key_X]
+MOVE_BACKWARD_RIGHT = ['move_backward_right', QtCore.Qt.Key_Alt]
 ARM_UP = ['arm_up', QtCore.Qt.Key_Up]
-ARM_DOWN = ['arm_up', QtCore.Qt.Key_Down]
+ARM_DOWN = ['arm_down', QtCore.Qt.Key_Down]
 CLAMP_OPEN = ['clamp_open', QtCore.Qt.Key_Left]
 CLAMP_CLOSE = ['clamp_close', QtCore.Qt.Key_Right]
 

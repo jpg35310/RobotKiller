@@ -139,7 +139,7 @@ if __name__ == '__main__':
         clamp_open = MESSAGE_FROM_MQTT.get("clamp_open", False)
         clamp_close = MESSAGE_FROM_MQTT.get("clamp_close", False)
 
-#        robotkiller.pince.work(clamp_open,clamp_close)
+        robotkiller.pince.work(clamp_open, clamp_close)
 
         robotkiller.arm.work(arm_up,arm_down)
         robotkiller.left.running(max_speed, min_speed, move_forward_left, move_backward_left, False)
