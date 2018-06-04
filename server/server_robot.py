@@ -98,19 +98,19 @@ if __name__ == '__main__':
     mosquitto.start()
  
     print("Lancement boucle robot")
-    while prog_game :
+    while True:
         # Pour les tests je garde la temporisation
         # Mais je dois remplacer cela par un arret depuis le bouton poussoir du robot
         # en possition tous les items à Flase 
         # en gros => c'est l'arret d'urgence
    
-        count_time = count_time + 0.2
-        if count_time > game_time :
-            prog_game = False
-
-        measure_distance = 9999999
-
-        time.sleep(0.2) # Pour gérer la vitesse de la boucle while      
+        # count_time = count_time + 0.2
+        # if count_time > game_time :
+        #     prog_game = False
+        #
+        # measure_distance = 9999999
+        #
+        # time.sleep(0.2) # Pour gérer la vitesse de la boucle while
 #        print("Ca marche bien")
 
         # print("traitement")
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         min_speed = MESSAGE_FROM_MQTT.get("min_speed", 50)
         distance = MESSAGE_FROM_MQTT.get("distance", 10)
 
-        while (is_playing):
+        while is_playing:
             is_playing = MESSAGE_FROM_MQTT.get("working", False)
             move_forward_left = MESSAGE_FROM_MQTT.get("move_forward_left", False)
             move_backward_left = MESSAGE_FROM_MQTT.get("move_backward_left", False)
