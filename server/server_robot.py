@@ -108,7 +108,7 @@ if __name__ == '__main__':
         # if count_time > game_time :
         #     prog_game = False
         #
-        # measure_distance = 9999999
+        measure_distance = 9999999
         #
         # time.sleep(0.2) # Pour gérer la vitesse de la boucle while
 #        print("Ca marche bien")
