@@ -100,13 +100,13 @@ max_speed_inc = 5
 max_speed_dec = 20
 
 pince_angle = 20                # Position au démarrage
-pince_angle_inc = 1
+pince_angle_inc = 2
 
 bras1_angle = 50                # Position au démarrage
-bras1_angle_inc = 1
+bras1_angle_inc = 2
 
 bras2_angle = 70                # Position au démarrage
-bras2_angle_inc = 1 
+bras2_angle_inc = 2
 
 #pigpio_host = "localhost"
 pigpio_host = "192.168.0.151"
@@ -439,12 +439,12 @@ class Arm(object):
     def work(self, arm_up, arm_down):
 
         if (arm_up is True) and (arm_down is False):
-            self.bras1.work(True,False)
-            self.bras2.work(False,True)
+            self.bras1.work(True, False)
+            self.bras2.work(False, True)
 
         elif (arm_up is False) and (arm_down is True):
-            self.bras1.work(False,True)
-            self.bras2.work(True,False)
+            self.bras1.work(False, True)
+            self.bras2.work(True, False)
 
     def arret(self):
         self.bras1.arret()
