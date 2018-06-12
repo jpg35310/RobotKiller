@@ -12,7 +12,7 @@ from interfaces.MainAppUi import Ui_MainWindow
 #############################################################################################
 #                                Initialisation des constantes                              #
 #############################################################################################
-mqtt_host = '192.168.0.43'
+mqtt_host = '192.168.0.151'
 mqtt_port = 1883
 mqtt_subscribe = 'robot'
 
