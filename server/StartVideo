@@ -1,7 +1,9 @@
 #!/bin/bash
 # Explication:
-# raspivid est l'utilitaire de base permettant d'afficher un flux locallement depuis la caméra
+# raspivid est l'utilitaire de base permettant d'afficher un flux locallement depuis la camï¿½ra
 # on fait un PiPe avec Gstreamer qui permet d'envoyer un flux UDP vers le poste client (adIp)
 
 
-raspivid -t 0 -w 640 -h 360 -rot 180 -fps 24 -b 500000 -n -pf baseline -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.0.60 port=5001
+raspivid -t 0 -w 640 -h 360 -rot 180 -fps 20 -b 500000 -n -pf baseline -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.0.60 port=5001
+
+raspivid -t 0 -w 1366 -h 568 -rot 180 -fps 24 -b 1000000 -n -pf baseline -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.0.60 port=5001
