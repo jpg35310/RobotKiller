@@ -60,11 +60,11 @@ if __name__ == '__main__':
     robotkiller = Robotkiller()
     
     pygame.init()
-    os.environ['SDL_VIDEO_WINDOW_POS']="0,568"  
-    screen = pygame.display.set_mode((1350, 200))  
+    os.environ['SDL_VIDEO_WINDOW_POS']="8,610"
+    screen = pygame.display.set_mode((1350, 150))
     pygame.display.set_caption('RobotKiller')
     fond = pygame.image.load("background.jpg").convert()
-    screen.blit(fond, (0,0))
+    screen.blit(fond, (0, 0))
     pygame.display.flip()
 
     chaine="Mesure Distance"
