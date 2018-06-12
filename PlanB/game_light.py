@@ -6,7 +6,7 @@ import time
 import json
 import pygame
 from pygame.locals import *
-from RkClassesHardware_light import Robotkiller
+from RkClassesHardware_light import Robotkiller, Caterpillar
 
 CIEL = 0, 200, 255
 WHITE = 255, 255, 255
@@ -40,13 +40,10 @@ if __name__ == '__main__':
 
     white_color = WHITE
 
-    max_speed = 200
-    min_speed = 50
     distance = 10
-    move_forward_left = False 
-    move_backward_left = False
-    move_forward_right = False
-    move_backward_right = False
+    move_right = 0
+    move_left = 0
+
     arm_up = True
     arm_down = False
     clamp_open = True
@@ -117,49 +114,49 @@ if __name__ == '__main__':
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 4:
                 # Chemille gauche - Marche avant
-                move_forward_left = True
+                move_left = Caterpillar.MOTOR_FORWARD
                 color_screen_forward_left = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 4:
                 # Chemille gauche - Marche avant - Rallentir
-                move_forward_left = False
+                move_left = Caterpillar.MOTOR_STOP
                 color_screen_forward_left = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 6:
                 #Chemille gauche - Marche arrière
-                move_backward_left = True
+                move_left = Caterpillar.MOTOR_BACKWARD
                 color_screen_backward_left = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 6:
                 # Chemille gauche - Marche arrière - Rallentir
-                move_backward_left = False
+                move_left = Caterpillar.MOTOR_STOP
                 color_screen_backward_left = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 5:
                 # Chemille droite - Marche avant
-                move_forward_right = True
+                move_right = Caterpillar.MOTOR_FORWARD
                 color_screen_forward_right = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 5:
                 # Chemille droite - Marche avant - Rallentir
-                move_forward_right = False
+                move_right = Caterpillar.MOTOR_STOP
                 color_screen_forward_right = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 7:
                 #Chemille droite - Marche arrière
-                move_backward_right = True
+                move_right = Caterpillar.MOTOR_BACKWARD
                 color_screen_backward_right = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 7:
                 # Chemille droite - Rallentir
-                move_backward_right = False
+                move_right = Caterpillar.MOTOR_STOP
                 color_screen_backward_right = WHITE
                 change_message = True
 
@@ -203,13 +200,11 @@ if __name__ == '__main__':
                 clamp_open = False
                 change_message = True
 
-
-
 #        if change_message == True :
         robotkiller.pince.work(clamp_open, clamp_close)
         robotkiller.arm.work(arm_up,arm_down)
-        robotkiller.left.running(max_speed, min_speed, move_forward_left, move_backward_left, False)
-        robotkiller.right.running(max_speed, min_speed, move_forward_right, move_backward_right, False)
+        robotkiller.left.running(move_left)
+        robotkiller.right.running(move_right)
         # change_message = False
 
 #        distance_to_collision = int(robotkiller.eyes.measured(distance))

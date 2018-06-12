@@ -296,7 +296,7 @@ class Robotkiller(object):
         self.controller = Controller()
         self.left = Caterpillar(self.controller, Controller.POS_LEFT)
         self.right = Caterpillar(self.controller, Controller.POS_RIGHT)
-        self.pince = ServoMotor(self.controller)
+        self.pince = ServoMotor(self.controller, Controller.SERVO_CLAMP, pince_angle_inc, pince_angle_min, pince_angle_max, pince_angle)
         self.arm = Arm(self.controller)
         self.eyes = Distance(self.controller)
         # self.button = PushButton(pin_bp)
@@ -327,24 +327,22 @@ class Caterpillar(object):
         max_speed = kwargs.get('max_speed', self.max_speed)
 
         # Arret d'urgence
-        if (move_direction is Caterpillar.MOTOR_STOP) or (not move_direction == self.last_direction):
+        if (move_direction == Caterpillar.MOTOR_STOP) or (not move_direction == self.last_direction):
             self.speed = 0
             self.controller.switch_led_front(self.side, 0)
             self.controller.switch_led_back(self.side, 0)
 
         # Marche avant
-        if move_direction is Caterpillar.MOTOR_FORWARD and self.speed > 0:
-            if not move_direction == self.last_direction:
-                self.controller.switch_led_front(self.side, 1)
-                self.controller.switch_motor_direction(self.side, Controller.MOTOR_FORWARD)
+        if move_direction == Caterpillar.MOTOR_FORWARD and self.speed > 0:
+            self.controller.switch_led_front(self.side, 1)
+            self.controller.switch_motor_direction(self.side, Controller.MOTOR_FORWARD)
 
         # Marche arrière
-        if move_direction is Caterpillar.MOTOR_BACKWARD and self.speed > 0:
-            if not move_direction == self.last_direction:
-                self.controller.switch_led_back(self.side, 1)
-                self.controller.switch_motor_direction(self.side, Controller.MOTOR_BACKWARD)
+        if move_direction == Caterpillar.MOTOR_BACKWARD and self.speed > 0:
+            self.controller.switch_led_back(self.side, 1)
+            self.controller.switch_motor_direction(self.side, Controller.MOTOR_BACKWARD)
 
-        if move_direction is Caterpillar.MOTOR_FORWARD:
+        if move_direction == Caterpillar.MOTOR_FORWARD or move_direction == Caterpillar.MOTOR_BACKWARD:
             self.speed = min_speed if COLLISION else max_speed
         elif move_direction == Caterpillar.MOTOR_STOP and self.speed > 0:
             self.speed = max(self.speed - self.acceleration_dec, 0)
@@ -431,19 +429,20 @@ class ServoMotor(object):
 
 
 class Arm(object):
-    def __init__(self):
+    def __init__(self, controller):
         self.arm_up = False
         self.arm_down = False
-        self.bras1 = ServoMotor(bras1_angle_inc, bras1_angle_min, bras1_angle_max, bras1_angle)
-        self.bras2 = ServoMotor(bras2_angle_inc, bras2_angle_min, bras2_angle_max, bras2_angle)
+        self.controller = controller
+        self.bras1 = ServoMotor(controller, Controller.SERVO_ARM_1, bras1_angle_inc, bras1_angle_min, bras1_angle_max, bras1_angle)
+        self.bras2 = ServoMotor(controller, Controller.SERVO_ARM_2, bras2_angle_inc, bras2_angle_min, bras2_angle_max, bras2_angle)
 
     def work(self, arm_up, arm_down):
 
-        if (arm_up == True) and (arm_down == False):
+        if (arm_up is True) and (arm_down is False):
             self.bras1.work(True,False)
             self.bras2.work(False,True)
 
-        elif (arm_up == False) and (arm_down == True):  
+        elif (arm_up is False) and (arm_down is True):
             self.bras1.work(False,True)
             self.bras2.work(True,False)
 
