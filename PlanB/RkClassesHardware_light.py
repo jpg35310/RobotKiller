@@ -81,19 +81,23 @@ bras1_servo_cal_m = (2250-750)/140  # valeur M propre à chaque servo
 bras1_servo_cal_x1 = 750            # valeur x1 propre à chaque servo
 bras1_angle_min = 15                # min:10° = bras relevé au max
 bras1_angle_max = 105               # max: 125° = bras au sol 110
+# A modifier pour chaque Robot
+# RBK01 =>  min = 15 / max =105
+# RBK02 =>  min = XX / max =1XX
 
 bras2_servo_cal_m = (2250-750)/140  # valeur M propre à chaque servo
 bras2_servo_cal_x1 = 750            # valeur x1 propre à chaque servo
 bras2_angle_min = 25                # min:x° = 30
 bras2_angle_max = 90                # max: x° = 91 / 90
+# A modifier pour chaque Robot
+# RBK01 =>  min = 25 / max =90
+# RBK02 =>  min = XX / max =XX
 
 #############################################################################################
 #                                Initialisation des variables                               #
 #############################################################################################
 # En majuscule les variables globales
 MAX_SPEED = 200                 # max speed est la valeur maxi de cycle du PWM supporté par le hardware
-                                # 200 pour les moteurs de base
-                                # 125 pour les moteurs de compétition !!!
 
 COLLISION_SPEED = 50            # min speed est la valeur maxi de cycle en cas de risque de collision
 max_speed_inc = 5
@@ -109,7 +113,7 @@ bras2_angle = 70                # Position au démarrage
 bras2_angle_inc = 2
 
 #pigpio_host = "localhost"
-pigpio_host = "192.168.0.151"
+pigpio_host = "192.168.0.152"
 pigpio_tcp_port =8888
 
 #############################################################################################
@@ -213,9 +217,8 @@ class Controller(object):
         self.motor.hardware_PWM(self.pin_motor_left, self.max_motor_frequency, 0)
         self.motor.hardware_PWM(self.pin_motor_right, self.max_motor_frequency, 0)
 
-        # Donc 50 = 1/4 à 1 pour un cycle, 100=1/2,   150=3/4, 200/on
+        # 50 = 1/4  du cycle, 100=1/2,   150=3/4, 200/on plein puissance
         self.motor.set_PWM_range(self.pin_motor_left, self.max_motor_cycle_range)
-        # Donc 50 = 1/4 à 1 pour un cycle, 100=1/2,   150=3/4, 200/on
         self.motor.set_PWM_range(self.pin_motor_right, self.max_motor_cycle_range)
 
         self.switch_motor_direction(Controller.POS_LEFT, Controller.MOTOR_FORWARD)

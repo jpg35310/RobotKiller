@@ -49,7 +49,7 @@ if __name__ == '__main__':
     clamp_open = True
     clamp_close = False
 
-    game_time = 120         # durée du jeu en seconde
+    game_time = 4 * 60         # durée du jeu en seconde
 
     prog_main = True        # Variable pour la gestion de la boucle principale (PB)
     prog_game = True        # Variable pour la gestion de la boucle principale (jeux)
@@ -92,11 +92,16 @@ if __name__ == '__main__':
 
     while prog_main:
  #       continuer = int(input())
+        
+        #Limitation de vitesse de la boucle
+        #25 frames par secondes suffisent
+        pygame.time.Clock().tick(25)
+
         events = pygame.event.get() #  retourne une liste d'events dans une table
         # pygame.event.pump() # Un truc qui sert à rien : permettre à la mémoire tampon d'événements de circuler facilement et d'éviter les mauvais comportements subtils entre différents systèmes
         for event in events : # on dépile la table evenement par évenement
 
-            time.sleep(0.01)
+#            time.sleep(0.01)
   
             if event.type == QUIT :
                 print("Sortie du programme")
