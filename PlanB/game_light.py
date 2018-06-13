@@ -28,6 +28,18 @@ def func_aff_move():
     screen_line_backward_right = pygame.draw.rect(screen, WHITE, [500, 80, 100, 50], 5)
     screen_backward_right = pygame.draw.rect(screen, color_screen_backward_right, [500, 80, 100, 50])
 
+    screen_line_arm_up = pygame.draw.rect(screen, WHITE, [700, 20, 100, 50], 5)
+    screen_arm_up = pygame.draw.rect(screen, color_screen_arm_up, [700, 20, 100, 50])
+
+    screen_line_arm_down = pygame.draw.rect(screen, WHITE, [700, 80, 100, 50], 5)
+    screen_arm_down = pygame.draw.rect(screen, color_screen_arm_down, [700, 80, 100, 50])
+
+    screen_line_clamp_open = pygame.draw.rect(screen, WHITE, [900, 20, 100, 50], 5)
+    screen_clamp_open = pygame.draw.rect(screen, color_screen_clamp_open, [900, 20, 100, 50])
+
+    screen_line_clamp_close = pygame.draw.rect(screen, WHITE, [900, 80, 100, 50], 5)
+    screen_clamp_close = pygame.draw.rect(screen, color_screen_clamp_close, [900, 80, 100, 50])
+
     pass 
 
 
@@ -37,6 +49,10 @@ if __name__ == '__main__':
     color_screen_backward_left = WHITE
     color_screen_forward_right = WHITE
     color_screen_backward_right = WHITE
+    color_screen_arm_up = WHITE
+    color_screen_arm_down = WHITE
+    color_screen_clamp_open = WHITE
+    color_screen_clamp_close = WHITE
 
     white_color = WHITE
 
@@ -168,41 +184,49 @@ if __name__ == '__main__':
             if event.type == pygame.JOYBUTTONDOWN and event.button == 0:
                 #Bras - UP
                 arm_up = True
+                color_screen_arm_up = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 2:
                 #Bras - Down
                 arm_down = True
+                color_screen_arm_down = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 0 :
                 #Bras - UP - Stop
                 arm_up = False
+                color_screen_arm_up = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 2 :
                 #Bras - Down - Stop
                 arm_down = False
+                color_screen_arm_down = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 1:
                 #Pince - Close
                 clamp_close = True
+                color_screen_clamp_close = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONDOWN and event.button == 3:
                 #Pince - Open 
                 clamp_open = True
+                color_screen_clamp_open = GREEN
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 1 :
                 #Pince - Close
                 clamp_close = False
+                color_screen_clamp_close = WHITE
                 change_message = True
 
             if event.type == pygame.JOYBUTTONUP and event.button == 3 :
                 #Pince - Open 
                 clamp_open = False
+                color_screen_clamp_open = WHITE
                 change_message = True
 
 #        if change_message == True :
