@@ -280,8 +280,8 @@ if __name__ == '__main__':
         robotkiller.right.running(move_right)
         # change_message = False
 
-        # display_distance = robotkiller.eyes.measured(distance_to_collision)
-
+        display_distance = int(robotkiller.eyes.measured(distance_to_collision))
+        print(display_distance)
     # Sortie propre du programme
     pygame.quit()
     print("Arret system")

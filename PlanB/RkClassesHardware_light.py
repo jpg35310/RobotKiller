@@ -106,10 +106,10 @@ max_speed_dec = 20
 pince_angle = 20                # Position au démarrage
 pince_angle_inc = 2
 
-bras1_angle = 50                # Position au démarrage
+bras1_angle = 30                # Position au démarrage
 bras1_angle_inc = 2
 
-bras2_angle = 70                # Position au démarrage
+bras2_angle = 85                # Position au démarrage
 bras2_angle_inc = 2
 
 #pigpio_host = "localhost"
@@ -279,18 +279,18 @@ class Controller(object):
             value = (int(((pince_servo_cal_m * value) + pince_servo_cal_x1) / 10) * 10) if value else 0
             self.motor.set_servo_pulsewidth(self.pin_clamp, value)
 
-    # def echo_callback(self, cb):
-    #     return self.motor.callback(self.pin_echo, pigpio.EITHER_EDGE, cb)
+    def echo_callback(self, cb):
+        return self.motor.callback(self.pin_echo, pigpio.EITHER_EDGE, cb)
 
-    # def activate_trigger(self, duration=10):
-    #     self.motor.gpio_trigger(self.pin_trigger, duration, 1)  # impulsion de 10us pour déclencher la mesure (Front haut)
+    def activate_trigger(self, duration=10):
+        self.motor.gpio_trigger(self.pin_trigger, duration, 1)  # impulsion de 10us pour déclencher la mesure (Front haut)
 
-    # def switch_trigger(self, mode):
-    #     value = int(bool(mode))
-    #     self.motor.write(self.pin_trigger, value)
+    def switch_trigger(self, mode):
+        value = int(bool(mode))
+        self.motor.write(self.pin_trigger, value)
 
-    # def get_current_tick(self):
-    #     return self.motor.get_current_tick()
+    def get_current_tick(self):
+        return self.motor.get_current_tick()
 
 
 class Robotkiller(object):
@@ -301,7 +301,7 @@ class Robotkiller(object):
         self.right = Caterpillar(self.controller, Controller.POS_RIGHT)
         self.pince = ServoMotor(self.controller, Controller.SERVO_CLAMP, pince_angle_inc, pince_angle_min, pince_angle_max, pince_angle)
         self.arm = Arm(self.controller)
-        # self.eyes = Distance(self.controller)
+        self.eyes = Distance(self.controller)
         # self.button = PushButton(pin_bp)
 
 
@@ -357,48 +357,48 @@ class Caterpillar(object):
         self.last_speed = self.speed
 
         
-# class Distance(object):
-#     def __init__(self, controller):
-#         self.measure_distance = 0
+class Distance(object):
+    def __init__(self, controller):
+        self.measure_distance = 0
 
-#         self.controller = controller
+        self.controller = controller
 
-#         self.controller.switch_trigger(0)  # On passe le trigger à Low
-#         time.sleep(0.5)  # On attend que le module à ultrason s'inititalise la première fois (sinon ca bug)
-#         self.toolong = 10000  # temps maxi de la mesure en ms
-#         self.high_tick = None
-#         self.echo_time = self.toolong
-#         self.echo_tick = self.controller.get_current_tick()  # valeur du temps CPU en µs
-#         self.cb = self.controller.echo_callback(self._cbf)
+        self.controller.switch_trigger(0)  # On passe le trigger à Low
+        time.sleep(0.5)  # On attend que le module à ultrason s'inititalise la première fois (sinon ca bug)
+        self.toolong = 10000  # temps maxi de la mesure en ms
+        self.high_tick = None
+        self.echo_time = self.toolong
+        self.echo_tick = self.controller.get_current_tick()  # valeur du temps CPU en µs
+        self.cb = self.controller.echo_callback(self._cbf)
 
-#     def _cbf(self, gpio, level, tick):
-#         # Measure de l'interval de temps (en tick) : echo_time
-#         if level == 1:
-#             self.high_tick = tick
-#         else:
-#             if self.high_tick is not None:
-#                 echo_time = tick - self.high_tick
-#             if echo_time < self.toolong:
-#                 self.echo_time = echo_time
-#                 self.echo_tick = tick
-#             else:
-#                 self.echo_time = self.toolong
-#             self.high_tick = None
+    def _cbf(self, gpio, level, tick):
+        # Measure de l'interval de temps (en tick) : echo_time
+        if level == 1:
+            self.high_tick = tick
+        else:
+            if self.high_tick is not None:
+                echo_time = tick - self.high_tick
+            if echo_time < self.toolong:
+                self.echo_time = echo_time
+                self.echo_tick = tick
+            else:
+                self.echo_time = self.toolong
+            self.high_tick = None
 
-#     def measured(self,slow_distance):
-#         global COLLISION
-#         # Measure de la distance
-#         self.controller.activate_trigger(10)  # impulsion de 10us pour déclencher la mesure (Front haut)
-#         time.sleep(0.00001)
-#         # La distance parcourue pendant ce temps = le temps X la vitesse du son (cm/s)
-#         distance = self.echo_time / 1000000.0 * speedSound
-#         # C'était la distance aller et retour donc on divise la valeur par 2
-#         self.measure_distance = distance / 2
+    def measured(self,slow_distance):
+        global COLLISION
+        # Measure de la distance
+        self.controller.activate_trigger(10)  # impulsion de 10us pour déclencher la mesure (Front haut)
+        time.sleep(0.00001)
+        # La distance parcourue pendant ce temps = le temps X la vitesse du son (cm/s)
+        distance = self.echo_time / 1000000.0 * speedSound
+        # C'était la distance aller et retour donc on divise la valeur par 2
+        self.measure_distance = distance / 2
 
-#         # Calcul du risque de collision nécessitant de passer en vitesse réduite
-#         COLLISION = bool(self.measure_distance < slow_distance)
-#         # On retourne la mesure de distance au Prog principal pour affichage sur l'IHM        
-#         return self.measure_distance
+        # Calcul du risque de collision nécessitant de passer en vitesse réduite
+        COLLISION = bool(self.measure_distance < slow_distance)
+        # On retourne la mesure de distance au Prog principal pour affichage sur l'IHM        
+        return self.measure_distance
 
 
 class ServoMotor(object):
