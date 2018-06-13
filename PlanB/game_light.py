@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division
 import os 
 import time
+from datetime import timedelta, datetime, date, time
 import json
 import pygame
 from pygame.locals import *
@@ -12,6 +13,37 @@ CIEL = 0, 200, 255
 WHITE = 255, 255, 255
 GREEN = 0, 255, 0
 RED = 255, 0, 0
+
+ 
+class Chrono:
+    def __init__(self, position, font, color=(255, 255, 255)):
+        self.chrono = datetime.combine(date.today(), time(0, 0))
+        self.font = font
+        self.color = color
+        self.label = self._make_chrono_label()
+        self.rect = self.label.get_rect(topleft=position)
+ 
+    def _make_chrono_label(self):
+        "Crée une Surface représentant le temps du chrono"
+        return font.render(self.chrono.strftime("%M : %S"),
+                           True, self.color)
+ 
+    def update(self, dt):
+        """Mise à jour du temps écoulé.
+ 
+        dt est le nombre de millisecondes
+        """
+        old_chrono = self.chrono
+        self.chrono += timedelta(milliseconds=dt)
+        # Comme le chrono n'indique pas les fractions de secondes,
+        # on ne met à jour le label que si quelque chose de visible a changé
+        if old_chrono.second != self.chrono.second:
+            self.label = self._make_chrono_label()
+ 
+    def draw(self, surface):
+        surface.blit(self.label, self.rect)
+       
+         
 
 
 def func_aff_move():
@@ -65,11 +97,8 @@ if __name__ == '__main__':
     clamp_open = True
     clamp_close = False
 
-    game_time = 4 * 60         # durée du jeu en seconde
-
     prog_main = True        # Variable pour la gestion de la boucle principale (PB)
-    prog_game = True        # Variable pour la gestion de la boucle principale (jeux)
-
+ 
     robotkiller = Robotkiller()
     
     pygame.init()
@@ -78,17 +107,14 @@ if __name__ == '__main__':
     pygame.display.set_caption('RobotKiller')
     fond = pygame.image.load("background.jpg").convert()
     screen.blit(fond, (0, 0))
-    pygame.display.flip()
-
-    chaine="Mesure Distance"
-    font=pygame.font.SysFont("broadway",12,bold=False,italic=False)
-    text=font.render(chaine,1,(1,1,1))
-    screen.blit(text,(30,30))
-
     func_aff_move()
 
-    pygame.display.flip() 
+    # gestion du temps
+    font = pygame.font.Font(None, 64)
+    fps_clock = pygame.time.Clock()
+    chrono = Chrono(position=(40, 50), font=font)
 
+    pygame.display.flip()
 
     pygame.joystick.init()
     joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -107,11 +133,24 @@ if __name__ == '__main__':
     change_message = False
 
     while prog_main:
- #       continuer = int(input())
-        
+    
         #Limitation de vitesse de la boucle
         #25 frames par secondes suffisent
         pygame.time.Clock().tick(25)
+
+        dt = fps_clock.tick(60)
+        chrono.update(dt)      
+ 
+#        screen.fill(0)
+        screen.blit(fond, (0, 0))
+        chrono.draw(screen)
+        pygame.display.update()
+
+        # screen_time=str(cout_time)
+        # font=pygame.font.SysFont("broadway",14,bold=True,italic=False)
+        # text=font.render(screen_time,1,(1,1,1))
+        # screen.blit(text,(30,30))
+
 
         events = pygame.event.get() #  retourne une liste d'events dans une table
         # pygame.event.pump() # Un truc qui sert à rien : permettre à la mémoire tampon d'événements de circuler facilement et d'éviter les mauvais comportements subtils entre différents systèmes
