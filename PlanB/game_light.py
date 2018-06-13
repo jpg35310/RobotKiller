@@ -88,13 +88,14 @@ if __name__ == '__main__':
 
     white_color = WHITE
 
-    distance = 10
+    distance_to_collision = 10
+    display_distance = 0
     move_right = 0
     move_left = 0
 
-    arm_up = True
+    arm_up = False
     arm_down = False
-    clamp_open = True
+    clamp_open = False
     clamp_close = False
 
     prog_main = True        # Variable pour la gestion de la boucle principale (PB)
@@ -145,6 +146,10 @@ if __name__ == '__main__':
         screen.blit(fond, (0, 0))
         chrono.draw(screen)
         pygame.display.update()
+
+        func_aff_move()
+        
+        pygame.display.flip() 
 
         # screen_time=str(cout_time)
         # font=pygame.font.SysFont("broadway",14,bold=True,italic=False)
@@ -275,10 +280,9 @@ if __name__ == '__main__':
         robotkiller.right.running(move_right)
         # change_message = False
 
-#        distance_to_collision = int(robotkiller.eyes.measured(distance))
-        func_aff_move()
-        pygame.display.flip() 
+        # display_distance = robotkiller.eyes.measured(distance_to_collision)
 
     # Sortie propre du programme
     pygame.quit()
     print("Arret system")
+
