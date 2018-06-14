@@ -164,10 +164,11 @@ if __name__ == '__main__':
         dt = fps_clock.tick(60)
         chrono.update(dt)
 
-
-        display_distance=int(robotkiller.eyes.measured(distance_to_collision))
-        print(display_distance)
-        distance.update(display_distance)      
+       
+        distance.update(int(robotkiller.eyes.measured(distance_to_collision)))
+#        display_distance=int(robotkiller.eyes.measured(distance_to_collision))
+#        print(display_distance)
+#        distance.update(display_distance)      
 
 #        screen.fill(0)
         screen.blit(fond, (0, 0))
