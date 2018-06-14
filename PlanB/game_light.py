@@ -42,9 +42,29 @@ class Chrono:
  
     def draw(self, surface):
         surface.blit(self.label, self.rect)
-       
-         
 
+class Distance:
+    def __init__(self, position, font, color=(255, 255, 255)):
+        self.data = "distance"
+        self.font = font
+        self.color = color
+        self.label = self._make_display_label()
+        self.rect = self.label.get_rect(topleft=position)
+ 
+    def _make_display_label(self):
+        "Crée une Surface représentant le temps du chrono"
+        return font.render(str(self.data) + ' Cm', True, self.color)
+
+    def update(self, display_distance):
+
+        if not display_distance == 165 :
+            self.data = display_distance
+        
+        self.label = self._make_display_label()
+
+    def draw(self, surface):
+        surface.blit(self.label, self.rect)       
+         
 
 def func_aff_move():
 
@@ -113,7 +133,9 @@ if __name__ == '__main__':
     # gestion du temps
     font = pygame.font.Font(None, 64)
     fps_clock = pygame.time.Clock()
-    chrono = Chrono(position=(40, 50), font=font)
+    chrono = Chrono(position=(50, 30), font=font)
+    distance = Distance(position=(50, 90), font=font)
+
 
     pygame.display.flip()
 
@@ -140,11 +162,17 @@ if __name__ == '__main__':
         pygame.time.Clock().tick(25)
 
         dt = fps_clock.tick(60)
-        chrono.update(dt)      
- 
+        chrono.update(dt)
+
+
+        display_distance=int(robotkiller.eyes.measured(distance_to_collision))
+        print(display_distance)
+        distance.update(display_distance)      
+
 #        screen.fill(0)
         screen.blit(fond, (0, 0))
         chrono.draw(screen)
+        distance.draw(screen)
         pygame.display.update()
 
         func_aff_move()
@@ -157,7 +185,7 @@ if __name__ == '__main__':
         # screen.blit(text,(30,30))
 
 
-        events = pygame.event.get() #  retourne une liste d'events dans une table
+        events = pygame.event.get() # retourne une liste d'events dans une table
         # pygame.event.pump() # Un truc qui sert à rien : permettre à la mémoire tampon d'événements de circuler facilement et d'éviter les mauvais comportements subtils entre différents systèmes
         for event in events : # on dépile la table evenement par évenement
 
@@ -280,8 +308,7 @@ if __name__ == '__main__':
         robotkiller.right.running(move_right)
         # change_message = False
 
-        display_distance = int(robotkiller.eyes.measured(distance_to_collision))
-        print(display_distance)
+
     # Sortie propre du programme
     pygame.quit()
     print("Arret system")

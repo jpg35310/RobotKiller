@@ -104,7 +104,7 @@ max_speed_inc = 5
 max_speed_dec = 20
 
 pince_angle = 20                # Position au démarrage
-pince_angle_inc = 2
+pince_angle_inc = 10
 
 bras1_angle = 30                # Position au démarrage
 bras1_angle_inc = 2
